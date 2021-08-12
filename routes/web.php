@@ -29,7 +29,7 @@ $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], fu
     // kirim laporan
     $router->group(['prefix' => 'laporan'], function() use ($router) {
         $router->post('/shift', 'LaporanController@catatanShift');
-        $router->post('/isian', 'LaporanController@formIsian');
+        $router->post('/form', 'LaporanController@formIsian');
     });
 
 });

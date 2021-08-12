@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Laporan;
 use App\Models\LaporanIsi;
-use App\Models\LaporanCatatan;
+use App\Models\LaporanShift;
 use Illuminate\Support\Facades\DB;
 use GrahamCampbell\Flysystem\Facades\Flysystem;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +19,7 @@ class LaporanController extends Controller
         $this->request = $request;
     }
 
-    public function catatanShift()
+    public function catatanShift(Request $request)
     {
         $this->validate($this->request, [
             'judul' => 'required',
@@ -41,8 +41,8 @@ class LaporanController extends Controller
                 ]);
             }
             
-            return $user;
-            $catatan = LaporanCatatan::create([
+            $catatan = LaporanShift::create([
+                'uuid' => generateUuid(),
                 'judul' => $this->request->judul,
                 'isi' => $this->request->isi,
                 'form_jenis' => $this->request->kategori,
@@ -64,10 +64,10 @@ class LaporanController extends Controller
     public function formIsian()
     {
         $this->validate($this->request, [
-            'judul' => 'required',
-            'isi' => 'required',
-            'kategori' => 'required',
-            // 'isian'
+            'shift' => 'required',
+            'laporan.*.form_isian_id' => 'required',
+            'laporan.*.pilihan_id' => 'required',
+            // 'laporan.*.keterangan' => 'required',
         ]);
 
         DB::beginTransaction();
@@ -85,15 +85,25 @@ class LaporanController extends Controller
             }
 
             $laporan = Laporan::create([
-                'judul' => $this->request->judul,
-                'isi' => $this->request->isi,
-                'form_jenis' => $this->request->kategori
+                'uuid' => generateUuid(),
+                'shift' => $this->request->shift,
+                'user_id' => $uuid,
             ]);
-
+            
+            foreach($this->request->laporan as $item) {
+                $laporanIsi = LaporanIsi::create([
+                    'uuid' => generateUuid(),
+                    'laporan_id' => $laporan->uuid,
+                    'form_isian_id' => $item['form_isian_id'],
+                    'pilihan_id' => $item['pilihan_id'],
+                    'keterangan' => $item['keterangan'] ?? '',
+                ]);
+            }
+            
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil mengirim laporan shift',
+                'message' => 'Berhasil mengirim laporan form',
                 'code'    => 200,
             ]);
         } catch (\Throwable $th) {

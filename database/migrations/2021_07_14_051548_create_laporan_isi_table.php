@@ -19,7 +19,7 @@ class CreateLaporanIsiTable extends Migration
             $table->string('laporan_id');
             $table->string('form_isian_id');
             $table->string('pilihan_id');
-            $table->string('keterangan');
+            $table->string('keterangan')->nullable();
             $table->timestamps();
         });
     }

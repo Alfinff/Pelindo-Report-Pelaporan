@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
-class LaporanCatatan extends Model
+class LaporanShift extends Model
 {
 
     protected $hidden = [
@@ -23,7 +23,7 @@ class LaporanCatatan extends Model
     ];
 
     protected $connection = 'pelindo_repport';
-    protected $table      = 'ms_laporan_catatan';
+    protected $table      = 'ms_laporan_shift';
     protected $guarded    = [];
 
     public function kategori()
