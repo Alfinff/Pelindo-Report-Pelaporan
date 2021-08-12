@@ -18,7 +18,11 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.superadmin']], function() use ($router) {
-
+    // get data laporan
+    $router->group(['prefix' => 'laporan'], function() use ($router) {
+        $router->get('/', 'LaporanController@getLaporan');
+        $router->get('/shift', 'LaporanController@getCatatanShift');
+    });
 });
 
 $router->group(['prefix' => 'supervisor', 'middleware' => ['jwt.auth', 'role.supervisor']], function() use ($router) {

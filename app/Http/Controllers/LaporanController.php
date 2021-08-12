@@ -19,6 +19,16 @@ class LaporanController extends Controller
         $this->request = $request;
     }
 
+    public function getLaporan(Request $request)
+    {
+        
+    }
+
+    public function getCatatanShift(Request $request)
+    {
+        
+    }
+
     public function catatanShift(Request $request)
     {
         $this->validate($this->request, [
@@ -64,9 +74,11 @@ class LaporanController extends Controller
     public function formIsian()
     {
         $this->validate($this->request, [
-            'shift' => 'required',
+            // 'shift' => 'required',
+            'form_jenis' => 'required',
             'laporan.*.form_isian_id' => 'required',
-            'laporan.*.pilihan_id' => 'required',
+            // 'laporan.*.pilihan_id' => 'required',
+            // 'laporan.*.isian' => 'required',
             // 'laporan.*.keterangan' => 'required',
         ]);
 
@@ -86,7 +98,8 @@ class LaporanController extends Controller
 
             $laporan = Laporan::create([
                 'uuid' => generateUuid(),
-                'shift' => $this->request->shift,
+                'shift' => $this->request->shift ?? '',
+                'form_jenis' => $this->request->form_jenis ?? '',
                 'user_id' => $uuid,
             ]);
             
@@ -95,7 +108,8 @@ class LaporanController extends Controller
                     'uuid' => generateUuid(),
                     'laporan_id' => $laporan->uuid,
                     'form_isian_id' => $item['form_isian_id'],
-                    'pilihan_id' => $item['pilihan_id'],
+                    'pilihan_id' => $item['pilihan_id'] ?? '',
+                    'isian' => $item['isian'] ?? '',
                     'keterangan' => $item['keterangan'] ?? '',
                 ]);
             }

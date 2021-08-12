@@ -18,7 +18,8 @@ class CreateLaporanIsiTable extends Migration
             $table->string('uuid', 191)->unique();
             $table->string('laporan_id');
             $table->string('form_isian_id');
-            $table->string('pilihan_id');
+            $table->string('pilihan_id')->nullable();
+            $table->string('isian')->nullable();
             $table->string('keterangan')->nullable();
             $table->timestamps();
         });

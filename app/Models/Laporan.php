@@ -17,6 +17,7 @@ class Laporan extends Model
     protected $fillable = [
         'uuid',
         'shift',
+        'form_jenis',
         'user_id'
     ];
 
@@ -27,6 +28,11 @@ class Laporan extends Model
     public function user()
     {
         return $this->hasOne(User::class, 'uuid', 'user_id');
+    }
+
+    public function form_jenis()
+    {
+        return $this->hasOne(FormJenis::class, 'uuid', 'form_jenis');
     }
 
     public function isi()

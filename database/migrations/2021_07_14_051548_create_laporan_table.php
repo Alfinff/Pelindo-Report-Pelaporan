@@ -16,7 +16,8 @@ class CreateLaporanTable extends Migration
         Schema::create('ms_laporan', function (Blueprint $table) {
             $table->id();
             $table->string('uuid', 191)->unique();
-            $table->string('shift')->unique();
+            $table->string('shift')->nullable();
+            $table->string('form_jenis')->nullable();
             $table->string('user_id');
             $table->timestamps();
         });

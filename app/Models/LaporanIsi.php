@@ -19,6 +19,7 @@ class LaporanIsi extends Model
         'laporan_id',
         'form_isian_id',
         'pilihan_id',
+        'isian',
         'keterangan'
     ];
 
