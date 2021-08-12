@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Role extends Model
+class FormJenis extends Model
 {
     use HasFactory;
 
@@ -19,7 +19,23 @@ class Role extends Model
         'id'
     ];
 
+    protected $fillable = [
+        'uuid',
+        'kode',
+        'nama'
+    ];
+
     protected $connection = 'pelindo_repport';
-    protected $table      = 'ms_roles';
+    protected $table      = 'ms_form_jenis';
     protected $guarded    = [];
+
+    public function getCreatedAtAttribute($value)
+    {
+        return formatTanggal($value);
+    }
+
+    public function getUpdatedAtAttribute($value)
+    {
+        return formatTanggal($value);
+    }
 }

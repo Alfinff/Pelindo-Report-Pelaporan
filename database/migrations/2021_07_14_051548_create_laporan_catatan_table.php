@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateReportTable extends Migration
+class CreateLaporanCatatanTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,13 @@ class CreateReportTable extends Migration
      */
     public function up()
     {
-        Schema::create('ms_report', function (Blueprint $table) {
+        Schema::create('ms_laporan_catatan', function (Blueprint $table) {
             $table->id();
             $table->string('uuid', 191)->unique();
-            $table->string('code')->unique();
-            $table->string('name');
+            $table->string('judul');
+            $table->string('isi');
+            $table->string('form_jenis');
+            $table->string('user_id');
             $table->timestamps();
         });
     }
@@ -29,6 +31,6 @@ class CreateReportTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ms_report');
+        Schema::dropIfExists('ms_laporan_catatan');
     }
 }

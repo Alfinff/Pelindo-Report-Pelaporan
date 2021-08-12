@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProfileTable extends Migration
+class CreateLaporanTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,11 @@ class CreateProfileTable extends Migration
      */
     public function up()
     {
-        Schema::create('ms_profile', function (Blueprint $table) {
+        Schema::create('ms_laporan', function (Blueprint $table) {
             $table->id();
-            $table->string('foto')->nullable();
-            $table->date('tgllahir')->nullable();
-            $table->string('jenis_kelamin')->default('LAKI-LAKI')->nullable();
-            $table->string('alamat')->nullable();
-            $table->string('user_id', 191);
             $table->string('uuid', 191)->unique();
+            $table->string('shift')->unique();
+            $table->string('user_id');
             $table->timestamps();
         });
     }
@@ -32,6 +29,6 @@ class CreateProfileTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ms_profile');
+        Schema::dropIfExists('ms_laporan');
     }
 }
