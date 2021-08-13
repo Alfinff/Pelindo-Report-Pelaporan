@@ -16,7 +16,7 @@ class Laporan extends Model
 
     protected $fillable = [
         'uuid',
-        'shift',
+        'jadwal_shift_id',
         'form_jenis',
         'user_id'
     ];

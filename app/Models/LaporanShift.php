@@ -28,7 +28,7 @@ class LaporanShift extends Model
 
     public function kategori()
     {
-        return $this->belongsTo(FormJenis::class, 'form_jenis', 'uuid');
+        return $this->belongsTo(FormJenis::class, 'form_jenis', 'kode');
     }
 
     public function user()

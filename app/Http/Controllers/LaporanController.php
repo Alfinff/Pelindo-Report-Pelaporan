@@ -74,7 +74,7 @@ class LaporanController extends Controller
     public function formIsian()
     {
         $this->validate($this->request, [
-            // 'shift' => 'required',
+            'jadwal_shift_id' => 'required',
             'form_jenis' => 'required',
             'laporan.*.form_isian_id' => 'required',
             // 'laporan.*.pilihan_id' => 'required',
@@ -98,7 +98,7 @@ class LaporanController extends Controller
 
             $laporan = Laporan::create([
                 'uuid' => generateUuid(),
-                'shift' => $this->request->shift ?? '',
+                'jadwal_shift_id' => $this->request->jadwal_shift_id ?? '',
                 'form_jenis' => $this->request->form_jenis ?? '',
                 'user_id' => $uuid,
             ]);
