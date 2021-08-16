@@ -34,7 +34,7 @@ class LaporanController extends Controller
         $this->validate($this->request, [
             'judul' => 'required',
             'isi' => 'required',
-            'kategori' => 'required',
+            'jadwal_shift_id' => 'required',
         ]);
 
         DB::beginTransaction();
@@ -50,12 +50,22 @@ class LaporanController extends Controller
                     'code'    => 404,
                 ]);
             }
+
+            $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->first();
+
+            if ($cekCatatanShiftSekarang) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sudah mengirim laporan shift',
+                    'code'    => 404,
+                ]);
+            }
             
             $catatan = LaporanShift::create([
                 'uuid' => generateUuid(),
                 'judul' => $this->request->judul,
                 'isi' => $this->request->isi,
-                'form_jenis' => $this->request->kategori,
+                'jadwal_shift_id' => $this->request->jadwal_shift_id,
                 'user_id' => $uuid
             ]);
 

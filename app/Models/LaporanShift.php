@@ -19,7 +19,8 @@ class LaporanShift extends Model
         'judul',
         'isi',
         'form_jenis',
-        'user_id'
+        'user_id',
+        'jadwal_shift_id'
     ];
 
     protected $connection = 'pelindo_repport';

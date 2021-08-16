@@ -18,7 +18,7 @@ class CreateLaporanShiftTable extends Migration
             $table->string('uuid', 191)->unique();
             $table->string('judul')->nullable();
             $table->string('isi')->nullable();
-            $table->string('form_jenis')->nullable();
+            $table->string('jadwal_shift_id');
             $table->string('user_id');
             $table->timestamps();
         });
