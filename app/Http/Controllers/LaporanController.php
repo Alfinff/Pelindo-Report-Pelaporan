@@ -112,31 +112,31 @@ class LaporanController extends Controller
 
             $where = array('jadwal_shift_id' => $this->request->jadwal_shift_id, 'form_jenis' => $this->request->form_jenis);
             
-            $cek = LaporanDikerjakan::where($where);
-            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
-            $cek = $cek->first();
+            // $cek = LaporanDikerjakan::where($where);
+            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            // $cek = $cek->first();
 
-            if($cek) {
-                if($cek->user_id == $uuid) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Silahkan Melanjutkan pengisian laporan',
-                        'code'    => 404,
-                    ]);
-                } else {
-                    $pengerja = User::where('uuid', $cek->user_id)->first();
-                    $nama = '';
-                    if($pengerja) {
-                        $nama = ucwords($pengerja->nama);
-                    }
+            // if($cek) {
+            //     if($cek->user_id == $uuid) {
+            //         return response()->json([
+            //             'success' => false,
+            //             'message' => 'Silahkan Melanjutkan pengisian laporan',
+            //             'code'    => 404,
+            //         ]);
+            //     } else {
+            //         $pengerja = User::where('uuid', $cek->user_id)->first();
+            //         $nama = '';
+            //         if($pengerja) {
+            //             $nama = ucwords($pengerja->nama);
+            //         }
 
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Laporan telah masih dikerjakan oleh '.$nama,
-                        'code'    => 404,
-                    ]);
-                }
-            }
+            //         return response()->json([
+            //             'success' => false,
+            //             'message' => 'Laporan telah masih dikerjakan oleh '.$nama,
+            //             'code'    => 404,
+            //         ]);
+            //     }
+            // }
 
             $cek = Laporan::where($where);
             $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
