@@ -222,17 +222,17 @@ class LaporanController extends Controller
             //     }
             // }
 
-            $cek = Laporan::where($where);
-            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
-            $cek = $cek->first();
+            // $cek = Laporan::where($where);
+            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            // $cek = $cek->first();
 
-            if($cek) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Laporan ini telah dikirim',
-                    'code'    => 404,
-                ]);
-            }
+            // if($cek) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Laporan ini telah dikirim',
+            //         'code'    => 404,
+            //     ]);
+            // }
 
             $laporan = Laporan::create([
                 'uuid' => generateUuid(),
