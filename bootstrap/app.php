@@ -75,9 +75,10 @@ $app->configure('mail');
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+    // App\Http\Middleware\ExampleMiddleware::class
+    App\Http\Middleware\CorsMiddleware::class
+]);
 
 $app->routeMiddleware([
 	'jwt.auth'        => App\Http\Middleware\JwtMiddleware::class,
@@ -142,7 +143,7 @@ $app->router->group([
 // $app->make('url')->to(env('APP_URL'));
 // $app['url']->to(env('APP_URL'));
 
-//$app->make('url')->forceRootUrl(env('APP_URL', env('APP_URL')));
+$app->make('url')->forceRootUrl(env('APP_URL', 'https://pelindo.primakom.co.id/api/pelaporan/'));
 
 return $app;
 
