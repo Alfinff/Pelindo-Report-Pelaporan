@@ -11,6 +11,7 @@ use App\Models\Laporan;
 use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
+use App\Models\FormIsian;
 use Illuminate\Support\Facades\DB;
 use GrahamCampbell\Flysystem\Facades\Flysystem;
 use Illuminate\Support\Facades\Hash;
@@ -70,14 +71,14 @@ class LaporanController extends Controller
 
     public function catatanShift(Request $request)
     {
-        $this->validate($this->request, [
-            'judul' => 'required',
-            'isi' => 'required',
-            'jadwal_shift_id' => 'required',
-        ]);
-
         DB::beginTransaction();
         try {
+            $this->validate($this->request, [
+                'judul' => 'required',
+                'isi' => 'required',
+                'jadwal_shift_id' => 'required',
+            ]);
+
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
             $user        = User::where('uuid', $uuid)->first();
@@ -122,14 +123,14 @@ class LaporanController extends Controller
                 'info_id'      => $catatan->uuid,
                 'judul'        => $this->request->judul,
                 'isi'          => $this->request->isi,
-                'jenis'        => 'CATATAN',
+                'jenis'        => env('NOTIF_CATATAN'),
             ]);
 
             $shiftHariIni = Jadwal::with('user')->where('tanggal', date('Y-m-d'))->get();
             foreach ($shiftHariIni as $item) {
                 InformasiUser::create([
                     'uuid'         => generateUuid(),
-                    'user_id'      => $item->user->user_id,
+                    'user_id'      => $item->user->uuid,
                     'informasi_id' => $informasi->uuid,
                     'dibaca'       => 0,
                 ]);
@@ -159,25 +160,33 @@ class LaporanController extends Controller
 
     public function formIsian()
     {
-        $this->validate($this->request, [
-            'jadwal_shift_id' => 'required',
-            'form_jenis' => 'required',
-            'laporan.*.form_isian_id' => 'required',
-            // 'laporan.*.pilihan_id' => 'required',
-            // 'laporan.*.isian' => 'required',
-            // 'laporan.*.keterangan' => 'required',
-        ]);
-
         DB::beginTransaction();
         try {
+            $this->validate($this->request, [
+                'jadwal_shift_id' => 'required',
+                'form_jenis' => 'required',
+                'laporan.*.form_isian_id' => 'required',
+                // 'laporan.*.pilihan_id' => 'required',
+                // 'laporan.*.isian' => 'required',
+                // 'laporan.*.keterangan' => 'required',
+            ]);
+
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
             $user        = User::where('uuid', $uuid)->first();
-
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
+            if (!$cekJadwal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jadwal tidak ditemukan',
                     'code'    => 404,
                 ]);
             }
@@ -227,12 +236,22 @@ class LaporanController extends Controller
 
             $laporan = Laporan::create([
                 'uuid' => generateUuid(),
-                'jadwal_shift_id' => $this->request->jadwal_shift_id ?? '',
-                'form_jenis' => $this->request->form_jenis ?? '',
+                'jadwal_shift_id' => $this->request->jadwal_shift_id,
+                'form_jenis' => $this->request->form_jenis,
                 'user_id' => $uuid,
             ]);
             
             foreach($this->request->laporan as $item) {
+
+                $cekForm = FormIsian::where('uuid', $item['form_isian_id'])->where('form_jenis', $this->request->form_jenis)->first();
+                if(!$cekForm) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'ID Form Tidak Sesuai',
+                        'code'    => 404,
+                    ]);
+                }
+
                 $laporanIsi = LaporanIsi::create([
                     'uuid' => generateUuid(),
                     'laporan_id' => $laporan->uuid,
