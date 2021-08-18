@@ -32,12 +32,17 @@ class Laporan extends Model
 
     public function form_jenis()
     {
-        return $this->hasOne(FormJenis::class, 'uuid', 'form_jenis');
+        return $this->hasOne(FormJenis::class, 'kode', 'form_jenis');
     }
 
     public function isi()
     {
         return $this->hasMany(LaporanIsi::class, 'laporan_id', 'uuid');
+    }
+
+    public function jadwal()
+    {
+        return $this->belongsTo(Jadwal::class, 'jadwal_shift_id', 'uuid');
     }
 
     public function getCreatedAtAttribute($value)

@@ -21,6 +21,7 @@ $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.sup
     // get data laporan
     $router->group(['prefix' => 'laporan'], function() use ($router) {
         $router->get('/', 'LaporanController@getLaporan');
+        $router->get('/user/{id}', 'LaporanController@detailLaporan');
         $router->get('/shift', 'LaporanController@getCatatanShift');
     });
 });

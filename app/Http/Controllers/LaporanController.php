@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Informasi;
+use App\Models\InformasiUser;
+use App\Models\Jadwal;
 use App\Models\Laporan;
 use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
@@ -11,6 +14,7 @@ use App\Models\LaporanDikerjakan;
 use Illuminate\Support\Facades\DB;
 use GrahamCampbell\Flysystem\Facades\Flysystem;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
@@ -22,6 +26,40 @@ class LaporanController extends Controller
 
     public function getLaporan(Request $request)
     {
+        $decodeToken = parseJwt($this->request->header('Authorization'));
+        $uuid        = $decodeToken->user->uuid;
+        $user        = User::where('uuid', $uuid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak ditemukan',
+                'code'    => 404,
+            ]);
+        }
+        else {
+            try {
+                $laporan =  Laporan::get();
+                if (empty($laporan)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Not Found',
+                        'code'    => 404,
+                    ]);
+                } 
+                else {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'OK',
+                        'code'    => 200,
+                        'data'  => $laporan
+                    ]);
+                }
+
+            } catch (\Throwable $th) {
+                return writeLog($th->getMessage());
+            }
+        }
         
     }
 
@@ -43,7 +81,6 @@ class LaporanController extends Controller
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
             $user        = User::where('uuid', $uuid)->first();
-            
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -52,7 +89,16 @@ class LaporanController extends Controller
                 ]);
             }
 
-            $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->first();
+            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
+            if (!$cekJadwal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jadwal tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
 
             if ($cekCatatanShiftSekarang) {
                 return response()->json([
@@ -69,6 +115,35 @@ class LaporanController extends Controller
                 'jadwal_shift_id' => $this->request->jadwal_shift_id,
                 'user_id' => $uuid
             ]);
+            
+            // kirim Info Ke Shift Selanjutnya
+            $informasi = Informasi::create([
+                'uuid'         => generateUuid(),
+                'info_id'      => $catatan->uuid,
+                'judul'        => $this->request->judul,
+                'isi'          => $this->request->isi,
+                'jenis'        => 'CATATAN',
+            ]);
+
+            $shiftHariIni = Jadwal::with('user')->where('tanggal', date('Y-m-d'))->get();
+            foreach ($shiftHariIni as $item) {
+                InformasiUser::create([
+                    'uuid'         => generateUuid(),
+                    'user_id'      => $item->user->user_id,
+                    'informasi_id' => $informasi->uuid,
+                    'dibaca'       => 0,
+                ]);
+
+                if ($item->user->fcm_token) {
+                    $to      = $item->user->fcm_token;
+                    $payload = [
+                        'title'    => 'Laporan Shift',
+                        'body'     => $this->request->isi,
+                        'priority' => 'high',
+                    ];
+                    sendFcm($to, $payload, $payload);
+                }
+            }
 
             DB::commit();
             return response()->json([
