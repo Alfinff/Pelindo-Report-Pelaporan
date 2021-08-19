@@ -33,8 +33,8 @@ $router->group(['prefix' => 'supervisor', 'middleware' => ['jwt.auth', 'role.sup
 $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], function() use ($router) {
     // kirim laporan lewat mobile
     $router->group(['prefix' => 'laporan'], function() use ($router) {
-        $router->post('/shift', 'LaporanController@catatanShift');
-        $router->post('/form', 'LaporanController@formIsian');
+        $router->post('/shift', 'LaporanMobileController@catatanShift');
+        $router->post('/form', 'LaporanMobileController@formIsian');
     });
 
 });
