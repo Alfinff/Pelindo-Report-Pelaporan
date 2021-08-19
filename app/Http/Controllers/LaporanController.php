@@ -40,7 +40,7 @@ class LaporanController extends Controller
         }
         else {
             try {
-                $laporan =  Laporan::with('user', 'jadwal.shift')->orderBy('created_at', 'desc')->paginate(25);
+                $laporan =  Laporan::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc')->paginate(25);
                 $laporan->map(function ($laporan) {
                     if ($laporan->user != null) {
                        return $laporan->nama_eos = $laporan->user->nama;

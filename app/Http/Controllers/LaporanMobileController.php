@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Informasi;
 use App\Models\InformasiUser;
+use App\Models\Shift;
 use App\Models\Jadwal;
 use App\Models\Laporan;
 use App\Models\LaporanIsi;
@@ -46,7 +47,7 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
-            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
+            $cekJadwal = Jadwal::with('shift')->where('uuid', $this->request->jadwal_shift_id)->first();
             if (!$cekJadwal) {
                 return response()->json([
                     'success' => false,
@@ -82,8 +83,33 @@ class LaporanMobileController extends Controller
                 'jenis'        => env('NOTIF_CATATAN'),
             ]);
 
-            $shiftHariIni = Jadwal::with('user')->where('tanggal', date('Y-m-d'))->get();
-            foreach ($shiftHariIni as $item) {
+            
+            $waktuShift = strtolower($cekJadwal->shift->nama);
+            
+            if(strpos($waktuShift, 'pagi') !== false) {
+                $shift = Shift::whereRaw('LOWER(nama) LIKE ? ',['%sore%'])->first();
+                if($shift) {
+                    $shiftSelanjutnya = Jadwal::with('user')->where('shift_id', $shift->uuid)->where('tanggal', date('Y-m-d'))->get();
+                }
+            } else if(strpos($waktuShift, 'sore') !== false) {
+                $shift = Shift::whereRaw('LOWER(nama) LIKE ? ',['%malam%'])->first();
+                if($shift) {
+                    $shiftSelanjutnya = Jadwal::with('user')->where('shift_id', $shift->uuid)->where('tanggal', date('Y-m-d'))->get();
+                }
+            } else if(strpos($waktuShift, 'malam') !== false) {
+                $shift = Shift::whereRaw('LOWER(nama) LIKE ? ',['%pagi%'])->first();
+                if($shift) {
+                    $shiftSelanjutnya = Jadwal::with('user')->where('shift_id', $shift->uuid)->where('tanggal', date('Y-m-d', strtotime(date('Y-m-d'). ' +1 day')))->get();
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nama jadwal tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+            
+            foreach ($shiftSelanjutnya as $item) {
                 InformasiUser::create([
                     'uuid'         => generateUuid(),
                     'user_id'      => $item->user->uuid,
