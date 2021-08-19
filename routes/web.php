@@ -21,7 +21,7 @@ $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.sup
     // get data laporan
     $router->group(['prefix' => 'laporan'], function() use ($router) {
         $router->get('/', 'LaporanController@getLaporan');
-        $router->get('/user/{id}', 'LaporanController@detailLaporan');
+        $router->get('/details/{id}', 'LaporanController@detailLaporan');
         $router->get('/shift', 'LaporanController@getCatatanShift');
     });
 });
@@ -31,7 +31,7 @@ $router->group(['prefix' => 'supervisor', 'middleware' => ['jwt.auth', 'role.sup
 });
 
 $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], function() use ($router) {
-    // kirim laporan
+    // kirim laporan lewat mobile
     $router->group(['prefix' => 'laporan'], function() use ($router) {
         $router->post('/shift', 'LaporanController@catatanShift');
         $router->post('/form', 'LaporanController@formIsian');

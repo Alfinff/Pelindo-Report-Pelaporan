@@ -32,6 +32,11 @@ class LaporanIsi extends Model
         return $this->belongsTo(Laporan::class, 'laporan_id', 'uuid');
     }
 
+    public function pilihan()
+    {
+        return $this->belongsTo(FormPilihan::class, 'pilihan_id', 'uuid');
+    }
+
     public function getCreatedAtAttribute($value)
     {
         return formatTanggal($value);
