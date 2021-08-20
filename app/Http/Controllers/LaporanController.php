@@ -27,6 +27,7 @@ class LaporanController extends Controller
 
     public function getLaporan(Request $request)
     {
+        // return $request->date;
         $decodeToken = parseJwt($this->request->header('Authorization'));
         $uuid        = $decodeToken->user->uuid;
         $user        = User::where('uuid', $uuid)->first();
@@ -40,7 +41,36 @@ class LaporanController extends Controller
         }
         else {
             try {
-                $laporan =  Laporan::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc')->paginate(25);
+                $laporan =  Laporan::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
+                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
+                
+                if ($request->date) {
+                    $date = $request->date;
+                    $laporan = $laporan->whereDate('created_at', '=', $date);
+                    $catatan = $catatan->whereDate('created_at', '=', $date);
+                }
+                if ($request->nama) {
+                    $nama = $request->nama;
+                    $laporan = $laporan->whereHas('user', function ($q) use ($nama) {
+                        $q->where('nama', $nama);
+                    });
+                    $catatan = $catatan->whereHas('user', function ($q) use ($nama) {
+                        $q->where('nama', $nama);
+                    });
+                }
+                if ($request->shift) {
+                    $shift = $request->shift;
+                    $laporan = $laporan->whereHas('jadwal', function ($q) use ($shift) {
+                        $q->where('shift_id', $shift);
+                    });
+                    $catatan = $catatan->whereHas('jadwal', function ($q) use ($shift) {
+                        $q->where('shift_id', $shift);
+                    });
+                }
+
+                $laporan = $laporan->paginate(25);
+                $catatan = $catatan->get();
+
                 $laporan->map(function ($laporan) {
                     if ($laporan->user != null) {
                        return $laporan->nama_eos = $laporan->user->nama;
@@ -51,7 +81,8 @@ class LaporanController extends Controller
                        return $laporan->shift = $laporan->jadwal->shift->nama;
                     }
                 });
-                $laporan = $laporan->setPath('https://pelindo.primakom.co.id/api/pelaporan/superadmin/laporan/');
+                
+                $laporan = $laporan->setPath('https://pelindo.primakom.co.id/api/pelaporan/laporan/');
                 if (empty($laporan)) {
                     return response()->json([
                         'success' => false,
@@ -64,7 +95,8 @@ class LaporanController extends Controller
                         'success' => true,
                         'message' => 'OK',
                         'code'    => 200,
-                        'data'  => $laporan
+                        'data'  => $laporan,
+                        'catatan_shift' => $catatan
                     ]);
                 }
 

@@ -14,8 +14,9 @@ use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
 use App\Models\FormIsian;
 use Illuminate\Support\Facades\DB;
-use GrahamCampbell\Flysystem\Facades\Flysystem;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use GrahamCampbell\Flysystem\Facades\Flysystem;
 use Carbon\Carbon;
 
 class LaporanMobileController extends Controller
@@ -28,14 +29,18 @@ class LaporanMobileController extends Controller
 
     public function catatanShift(Request $request)
     {
+        $validator = Validator::make($this->request->all(), [
+            'judul' => 'required',
+            'isi' => 'required',
+            'jadwal_shift_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return writeLogValidation($validator->errors());
+        }
+
         DB::beginTransaction();
         try {
-            $this->validate($this->request, [
-                'judul' => 'required',
-                'isi' => 'required',
-                'jadwal_shift_id' => 'required',
-            ]);
-
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
             $user        = User::where('uuid', $uuid)->first();
@@ -56,15 +61,15 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
-            $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
+            // $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
 
-            if ($cekCatatanShiftSekarang) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Sudah mengirim laporan shift',
-                    'code'    => 404,
-                ]);
-            }
+            // if ($cekCatatanShiftSekarang) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Sudah mengirim laporan shift',
+            //         'code'    => 404,
+            //     ]);
+            // }
             
             $catatan = LaporanShift::create([
                 'uuid' => generateUuid(),
@@ -108,7 +113,7 @@ class LaporanMobileController extends Controller
                     'code'    => 404,
                 ]);
             }
-            
+
             foreach ($shiftSelanjutnya as $item) {
                 InformasiUser::create([
                     'uuid'         => generateUuid(),
@@ -142,17 +147,22 @@ class LaporanMobileController extends Controller
 
     public function formIsian()
     {
+
+        $validator = Validator::make($this->request->all(), [
+            'jadwal_shift_id' => 'required',
+            'form_jenis' => 'required',
+            'laporan.*.form_isian_id' => 'required',
+            // 'laporan.*.pilihan_id' => 'required',
+            // 'laporan.*.isian' => 'required',
+            // 'laporan.*.keterangan' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return writeLogValidation($validator->errors());
+        }
+
         DB::beginTransaction();
         try {
-            $this->validate($this->request, [
-                'jadwal_shift_id' => 'required',
-                'form_jenis' => 'required',
-                'laporan.*.form_isian_id' => 'required',
-                // 'laporan.*.pilihan_id' => 'required',
-                // 'laporan.*.isian' => 'required',
-                // 'laporan.*.keterangan' => 'required',
-            ]);
-
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
             $user        = User::where('uuid', $uuid)->first();
@@ -204,17 +214,17 @@ class LaporanMobileController extends Controller
             //     }
             // }
 
-            $cek = Laporan::where($where);
-            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
-            $cek = $cek->first();
+            // $cek = Laporan::where($where);
+            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            // $cek = $cek->first();
 
-            if($cek) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Laporan ini telah dikirim',
-                    'code'    => 404,
-                ]);
-            }
+            // if($cek) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Laporan ini telah dikirim',
+            //         'code'    => 404,
+            //     ]);
+            // }
 
             $laporan = Laporan::create([
                 'uuid' => generateUuid(),

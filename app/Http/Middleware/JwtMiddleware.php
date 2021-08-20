@@ -39,7 +39,7 @@ class JwtMiddleware
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorize',
-                'code'    => 401,
+                'code'    => 500,
             ]);
         }
     }

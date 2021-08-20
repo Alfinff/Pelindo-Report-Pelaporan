@@ -37,6 +37,11 @@ class LaporanShift extends Model
         return $this->belongsTo(User::class, 'user_id', 'uuid');
     }
 
+    public function jadwal()
+    {
+        return $this->belongsTo(Jadwal::class, 'jadwal_shift_id', 'uuid');
+    }
+
     public function getCreatedAtAttribute($value)
     {
         return formatTanggal($value);
