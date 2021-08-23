@@ -62,8 +62,11 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
-            // cek catatan shift sudah dikirim / belum
+            // cek catatan shift hari ini sudah dikirim / belum
             $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
+            // ->whereHas('jadwal', function ($query) {
+            //     $query->where('kode_shift', $cekJadwal->kode_shift);
+            // })
 
             if ($cekCatatanShiftSekarang) {
                 return response()->json([
@@ -92,7 +95,6 @@ class LaporanMobileController extends Controller
 
             
             $kodeShift = strtolower($cekJadwal->kode_shift);
-            
             if($kodeShift == 'p') {
                 $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'S')->where('tanggal', date('Y-m-d'))->get();
             } else if($kodeShift == 's') {
@@ -107,6 +109,7 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
+            // blast notif Info Ke Shift Selanjutnya
             foreach ($shiftSelanjutnya as $item) {
                 InformasiUser::create([
                     'uuid'         => generateUuid(),
@@ -167,6 +170,7 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
+            // cek jadwal ada / tidak
             $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
             if (!$cekJadwal) {
                 return response()->json([
@@ -176,56 +180,85 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
+            // cek laporan sedang dikerjakan atau tidak
             $jam_sekarang = date('Y-m-d H').':00:00';
             $jam_sekarang_plus1 = date('Y-m-d H', strtotime('+1 hour')).':00:00';
-
             $where = array('jadwal_shift_id' => $this->request->jadwal_shift_id, 'form_jenis' => $this->request->form_jenis);
+
+            $cek = LaporanDikerjakan::where($where);
+            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            $cek = $cek->first();
+            if($cek) {
+                if($cek->user_id != $uuid) {
+                    $pengerja = User::where('uuid', $cek->user_id)->first();
+                    $nama = '';
+                    if($pengerja) {
+                        $nama = ucwords($pengerja->nama);
+                    }
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Laporan masih dikerjakan oleh '.$nama,
+                        'code'    => 404,
+                    ]);
+                }
+            }
+
+            // cek laporan sudah dikerjakan / belum
+            $cek = Laporan::where($where);
+            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            $cek = $cek->first();
+            if($cek) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Laporan pada jam ini telah dikirim',
+                    'code'    => 404,
+                ]);
+            }
+
+            $laporan = new Laporan;
+            $laporan->uuid = generateUuid();
+            $laporan->jadwal_shift_id = $this->request->jadwal_shift_id;
+            $laporan->form_jenis = $this->request->form_jenis;
+            $laporan->user_id = $uuid;
+
+            // cek pada jam ini termasuk range jam shift user yang mengirim atau tidak
+            $getShift = Shift::where('kode', $cekJadwal->kode_shift)->first();
+            $jammulai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->mulai)));
+            $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+            $jamsekarang = strtotime(date('Y-m-d H:i:s'));
+
+            // jika jam shift sudah terlewat maka ambil created ad dari laporan di kerjakan
+            if(($jammulai <= $jamsekarang) && ($jamselesai >= $jamsekarang)) {
+                
+            } else {
+                // ambil created at dari laporan ketika dikerjakan
+                $cekDikerjakan = LaporanDikerjakan::where($where)->where('user_id', $uuid)->first();
+                if($cekDikerjakan) {
+                    $jam_laporanDikerjakan = date('Y-m-d H', strtotime($cekDikerjakan->created_at)).':00:00';
+                    $plus1 = strtotime('+1 hour', strtotime($jam_laporanDikerjakan));
+                    $jam_laporanDikerjakan_plus1 = date('Y-m-d H', $plus1).':00:00';
+
+                    // cek laporan pada jam tersebut sudah di kerjakan / belum
+                    $cek = Laporan::where($where);
+                    $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan)), date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan_plus1))]);
+                    $cek = $cek->first();
+                    if($cek) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Laporan pada jam tersebut telah dikirim',
+                            'code'    => 404,
+                        ]);
+                    }
+
+                    $laporan->created_at = $cekDikerjakan->created_at;
+                }
+            }
+
+            // insert ke laporan
+            $laporan->save();
             
-            // $cek = LaporanDikerjakan::where($where);
-            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
-            // $cek = $cek->first();
-
-            // if($cek) {
-            //     if($cek->user_id == $uuid) {
-            //         return response()->json([
-            //             'success' => false,
-            //             'message' => 'Silahkan Melanjutkan pengisian laporan',
-            //             'code'    => 404,
-            //         ]);
-            //     } else {
-            //         $pengerja = User::where('uuid', $cek->user_id)->first();
-            //         $nama = '';
-            //         if($pengerja) {
-            //             $nama = ucwords($pengerja->nama);
-            //         }
-
-            //         return response()->json([
-            //             'success' => false,
-            //             'message' => 'Laporan telah masih dikerjakan oleh '.$nama,
-            //             'code'    => 404,
-            //         ]);
-            //     }
-            // }
-
-            // $cek = Laporan::where($where);
-            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
-            // $cek = $cek->first();
-
-            // if($cek) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Laporan ini telah dikirim',
-            //         'code'    => 404,
-            //     ]);
-            // }
-
-            $laporan = Laporan::create([
-                'uuid' => generateUuid(),
-                'jadwal_shift_id' => $this->request->jadwal_shift_id,
-                'form_jenis' => $this->request->form_jenis,
-                'user_id' => $uuid,
-            ]);
-            
+            // validasi dan input jawaban form
             foreach($this->request->laporan as $item) {
 
                 $cekForm = FormIsian::where('uuid', $item['form_isian_id'])->where('form_jenis', $this->request->form_jenis)->first();

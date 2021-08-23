@@ -60,11 +60,11 @@ class LaporanController extends Controller
                 }
                 if ($request->shift) {
                     $shift = $request->shift;
-                    $laporan = $laporan->whereHas('jadwal', function ($q) use ($shift) {
-                        $q->where('shift_id', $shift);
+                    $laporan = $laporan->whereHas('jadwal.shift', function ($q) use ($shift) {
+                        $q->where('uuid', $shift);
                     });
-                    $catatan = $catatan->whereHas('jadwal', function ($q) use ($shift) {
-                        $q->where('shift_id', $shift);
+                    $catatan = $catatan->whereHas('jadwal.shift', function ($q) use ($shift) {
+                        $q->where('uuid', $shift);
                     });
                 }
 

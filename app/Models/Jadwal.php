@@ -37,6 +37,6 @@ class Jadwal extends Model
 
     public function shift()
     {
-        return $this->hasOne(Shift::class, 'uuid', 'kode_shift');
+        return $this->hasOne(Shift::class, 'kode', 'kode_shift');
     }
 }
