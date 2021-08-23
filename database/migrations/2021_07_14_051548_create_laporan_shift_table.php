@@ -16,8 +16,8 @@ class CreateLaporanShiftTable extends Migration
         Schema::create('ms_laporan_shift', function (Blueprint $table) {
             $table->id();
             $table->string('uuid', 191)->unique();
-            $table->string('judul')->nullable();
-            $table->string('isi')->nullable();
+            $table->text('judul')->nullable();
+            $table->text('isi')->nullable();
             $table->string('jadwal_shift_id');
             $table->string('user_id');
             $table->timestamps();

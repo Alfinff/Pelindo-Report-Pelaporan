@@ -52,7 +52,8 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
-            $cekJadwal = Jadwal::with('shift')->where('uuid', $this->request->jadwal_shift_id)->first();
+            // cek jadwal shift user
+            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
             if (!$cekJadwal) {
                 return response()->json([
                     'success' => false,
@@ -61,15 +62,16 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
-            // $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
+            // cek catatan shift sudah dikirim / belum
+            $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
 
-            // if ($cekCatatanShiftSekarang) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Sudah mengirim laporan shift',
-            //         'code'    => 404,
-            //     ]);
-            // }
+            if ($cekCatatanShiftSekarang) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sudah mengirim laporan shift',
+                    'code'    => 404,
+                ]);
+            }
             
             $catatan = LaporanShift::create([
                 'uuid' => generateUuid(),
@@ -89,23 +91,14 @@ class LaporanMobileController extends Controller
             ]);
 
             
-            $waktuShift = strtolower($cekJadwal->shift->nama);
+            $kodeShift = strtolower($cekJadwal->kode_shift);
             
-            if(strpos($waktuShift, 'pagi') !== false) {
-                $shift = Shift::whereRaw('LOWER(nama) LIKE ? ',['%sore%'])->first();
-                if($shift) {
-                    $shiftSelanjutnya = Jadwal::with('user')->where('shift_id', $shift->uuid)->where('tanggal', date('Y-m-d'))->get();
-                }
-            } else if(strpos($waktuShift, 'sore') !== false) {
-                $shift = Shift::whereRaw('LOWER(nama) LIKE ? ',['%malam%'])->first();
-                if($shift) {
-                    $shiftSelanjutnya = Jadwal::with('user')->where('shift_id', $shift->uuid)->where('tanggal', date('Y-m-d'))->get();
-                }
-            } else if(strpos($waktuShift, 'malam') !== false) {
-                $shift = Shift::whereRaw('LOWER(nama) LIKE ? ',['%pagi%'])->first();
-                if($shift) {
-                    $shiftSelanjutnya = Jadwal::with('user')->where('shift_id', $shift->uuid)->where('tanggal', date('Y-m-d', strtotime(date('Y-m-d'). ' +1 day')))->get();
-                }
+            if($kodeShift == 'p') {
+                $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'S')->where('tanggal', date('Y-m-d'))->get();
+            } else if($kodeShift == 's') {
+                $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'M')->where('tanggal', date('Y-m-d'))->get();
+            } else if($kodeShift == 'm') {
+                $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'P')->where('tanggal', date('Y-m-d', strtotime(date('Y-m-d'). ' +1 day')))->get();
             } else {
                 return response()->json([
                     'success' => false,
