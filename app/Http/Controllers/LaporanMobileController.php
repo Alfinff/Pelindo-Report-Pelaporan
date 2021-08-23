@@ -180,6 +180,15 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
+            // cek hari ini libur atau tidak
+            if($cekJadwal->kode_shift == 'L') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jadwal libur pada hari ini',
+                    'code'    => 404,
+                ]);
+            }
+
             // cek laporan sedang dikerjakan atau tidak
             $jam_sekarang = date('Y-m-d H').':00:00';
             $jam_sekarang_plus1 = date('Y-m-d H', strtotime('+1 hour')).':00:00';

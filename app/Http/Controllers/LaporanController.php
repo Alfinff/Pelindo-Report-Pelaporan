@@ -12,6 +12,7 @@ use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
 use App\Models\FormIsian;
+use App\Models\FormJenis;
 use Illuminate\Support\Facades\DB;
 use GrahamCampbell\Flysystem\Facades\Flysystem;
 use Illuminate\Support\Facades\Hash;
@@ -52,20 +53,24 @@ class LaporanController extends Controller
                 if ($request->nama) {
                     $nama = $request->nama;
                     $laporan = $laporan->whereHas('user', function ($q) use ($nama) {
-                        $q->where('nama', $nama);
+                        $q->where('nama', 'ilike', '%'. $nama .'%');
                     });
                     $catatan = $catatan->whereHas('user', function ($q) use ($nama) {
-                        $q->where('nama', $nama);
+                        $q->where('nama', 'ilike', '%'. $nama .'%');
                     });
                 }
                 if ($request->shift) {
                     $shift = $request->shift;
                     $laporan = $laporan->whereHas('jadwal.shift', function ($q) use ($shift) {
-                        $q->where('uuid', $shift);
+                        $q->where('kode', $shift);
                     });
                     $catatan = $catatan->whereHas('jadwal.shift', function ($q) use ($shift) {
-                        $q->where('uuid', $shift);
+                        $q->where('kode', $shift);
                     });
+                }
+                if ($request->kode_jenis) {
+                    $jenis = $request->kode_jenis;
+                    $laporan = $laporan->where('form_jenis', $jenis);
                 }
 
                 $laporan = $laporan->paginate(25);
@@ -82,7 +87,7 @@ class LaporanController extends Controller
                     }
                 });
                 
-                $laporan = $laporan->setPath('https://pelindo.primakom.co.id/api/pelaporan/laporan/');
+                $laporan = $laporan->setPath('https://pelindo.primakom.co.id/api/pelaporan/laporan/?date='.$request->date.'&?nama='.$request->nama.'&?shift='.$request->shift.'&?jenis='.$request->kode_jenis);
                 if (empty($laporan)) {
                     return response()->json([
                         'success' => false,
@@ -157,6 +162,17 @@ class LaporanController extends Controller
     public function getCatatanShift(Request $request)
     {
         
+    }
+
+    public function getFormJenis()
+    {
+        $data = FormJenis::all();
+        return response()->json([
+            'success' => true,
+            'message' => 'OK',
+            'code'    => 200,
+            'data'  => $data,
+        ]);
     }
 
 }

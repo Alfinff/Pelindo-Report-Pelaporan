@@ -17,6 +17,10 @@ $router->get('/', function () use ($router) {
     echo 'API Pelindo Report - Pelaporan';
 });
 
+$router->group(['prefix' => 'dashboard', 'middleware' => ['jwt.auth', 'role.super']], function() use ($router) {
+    $router->get('/', 'DashboardController@getDashboard');
+});
+
 $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.superadmin']], function() use ($router) {
     // get data laporan
     $router->group(['prefix' => 'laporan'], function() use ($router) {
@@ -35,8 +39,8 @@ $router->group(['prefix' => 'laporan', 'middleware' => ['jwt.auth', 'role.super'
     // });
 });
 
-$router->group(['prefix' => 'supervisor', 'middleware' => ['jwt.auth', 'role.supervisor']], function() use ($router) {
-    
+$router->group(['prefix' => 'utils'], function() use ($router) {
+    $router->get('/kategori', 'LaporanController@getFormJenis');
 });
 
 $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], function() use ($router) {
