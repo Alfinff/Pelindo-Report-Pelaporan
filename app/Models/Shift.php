@@ -22,4 +22,9 @@ class Shift extends Model
     protected $connection = 'pelindo_repport';
     protected $table      = 'ms_shift';
     protected $guarded    = [];
+
+    public function jadwal()
+    {
+        return $this->belongsTo(Jadwal::class, 'kode', 'kode_shift');
+    }
 }

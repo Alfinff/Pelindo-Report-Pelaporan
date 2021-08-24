@@ -39,4 +39,10 @@ class Jadwal extends Model
     {
         return $this->hasOne(Shift::class, 'kode', 'kode_shift');
     }
+    public function laporan()
+    {
+        return $this->hasMany(Laporan::class, 'jadwal_shift_id', 'uuid');
+    }
+    
 }
+

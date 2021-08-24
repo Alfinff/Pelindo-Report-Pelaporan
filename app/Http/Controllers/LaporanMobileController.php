@@ -53,7 +53,7 @@ class LaporanMobileController extends Controller
             }
 
             // cek jadwal shift user
-            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
+            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->where('user_id', $uuid)->first();
             if (!$cekJadwal) {
                 return response()->json([
                     'success' => false,
@@ -62,17 +62,38 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
-            // cek catatan shift hari ini sudah dikirim / belum
-            $cekCatatanShiftSekarang = LaporanShift::where('jadwal_shift_id', $this->request->jadwal_shift_id)->where('user_id', $uuid)->whereDate('created_at', date('Y-m-d'))->first();
-            // ->whereHas('jadwal', function ($query) {
-            //     $query->where('kode_shift', $cekJadwal->kode_shift);
-            // })
-
-            if ($cekCatatanShiftSekarang) {
+            // cek hari ini libur atau tidak
+            if($cekJadwal->kode_shift == 'L') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Sudah mengirim laporan shift',
+                    'message' => 'Jadwal libur pada hari ini',
                     'code'    => 404,
+                ]);
+            }
+
+            $getShift = Shift::where('kode', $cekJadwal->kode_shift)->first();
+            $jammulai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->mulai)));
+            $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+            $js = date('Y-m-d H:i:s', $jamselesai);
+            $jamselesaiplus3 = strtotime('+3 hour', strtotime($js));
+            $jamsekarang = strtotime(date('Y-m-d H:i:s'));
+            $from = date('Y-m-d H:i:s', $jammulai);
+            $to = date('Y-m-d H:i:s', $jamselesaiplus3);
+
+            if(($jammulai <= $jamsekarang) && ($jamselesaiplus3 >= $jamsekarang)) {
+                $cek = LaporanShift::where('user_id', $uuid)->where('jadwal_shift_id', $this->request->jadwal_shift_id)->whereBetween('created_at', [$from, $to])->first();
+                if ($cek) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sudah melakukan pelaporan shift hari ini, pelaporan shift hanya bisa dilakukan 1 kali',
+                            'code'    => 404
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Batas waktu pengiriman laporan shift sudah berakhir',
+                    'code'    => 200
                 ]);
             }
             
@@ -93,7 +114,6 @@ class LaporanMobileController extends Controller
                 'jenis'        => env('NOTIF_CATATAN'),
             ]);
 
-            
             $kodeShift = strtolower($cekJadwal->kode_shift);
             if($kodeShift == 'p') {
                 $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'S')->where('tanggal', date('Y-m-d'))->get();
@@ -171,7 +191,7 @@ class LaporanMobileController extends Controller
             }
 
             // cek jadwal ada / tidak
-            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->first();
+            $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->where('user_id', $uuid)->first();
             if (!$cekJadwal) {
                 return response()->json([
                     'success' => false,

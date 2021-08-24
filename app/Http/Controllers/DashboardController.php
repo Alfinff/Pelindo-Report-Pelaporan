@@ -50,9 +50,7 @@ class DashboardController extends Controller
             $cleaning = 0; $cleaning = Laporan::whereDate('created_at', date('Y-m-d'))->where('form_jenis', env('FORM_CLEANING'))->count();
             $facilities = 0; $facilities = Laporan::whereDate('created_at', date('Y-m-d'))->where('form_jenis', env('FORM_FACILITIES'))->count();
 
-            $chartLaporan = 0; $chartLaporan = Laporan::whereYear('created_at', date('Y'))->groupBy(function($val) {
-                return Carbon::parse($val->created_at)->format('M');
-            })->count();
+            $chartLaporan = 0; 
 
             $data = [
                 'jumlah' => [

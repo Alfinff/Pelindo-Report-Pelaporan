@@ -33,7 +33,7 @@ $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.sup
 $router->group(['prefix' => 'laporan', 'middleware' => ['jwt.auth', 'role.super']], function() use ($router) {
     // get data laporan
     // $router->group(['prefix' => 'laporan'], function() use ($router) {
-        $router->get('/', 'LaporanController@getLaporan');
+        $router->get('/fct', 'LaporanController@getLaporanFct');
         $router->get('/details/{id}', 'LaporanController@detailLaporan');
         $router->get('/shift', 'LaporanController@getCatatanShift');
     // });
