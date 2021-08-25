@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use GrahamCampbell\Flysystem\Facades\Flysystem;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class LaporanController extends Controller
 {
@@ -43,10 +44,34 @@ class LaporanController extends Controller
         }
         else {
             try {
-                $shift = Shift::orderBy('created_at', 'asc')->get();
+                $shift = Shift::orderBy('created_at', 'asc')->where('created_at', '!=', null);
+                      
+                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
+                
+                if ($request->date) {
+                    $date = $request->date;
+                    $catatan = $catatan->whereDate('created_at', '=', $date);
+                }
+                if ($request->nama) {
+                    $nama = $request->nama;
+                    $catatan = $catatan->whereHas('user', function ($q) use ($nama) {
+                        $q->where('nama', 'ilike', '%'. $nama .'%');
+                    });
+                }
+                if ($request->shift) {
+                    $sh = $request->shift;
+                    $shift = $shift->where('kode', $sh);
+                    $catatan = $catatan->whereHas('jadwal.shift', function ($q) use ($sh) {
+                        $q->where('kode', $sh);
+                    });
+                }
+
+                $shift = $shift->get();
+                $catatan = $catatan->get();
+
                 $shift->map(function ($shift) use ($request){
                     $cek = FormIsian::where('form_jenis', 'FCT')->get();
-                    $cek->map(function ($cek) use ($request, $shift) {
+                    $a = $cek->map(function ($cek) use ($request, $shift) {
                         $isi= LaporanIsi::where('form_isian_id', $cek->uuid)->with('laporan.jadwal.shift','laporan.user','pilihan')->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
                         });
@@ -56,14 +81,21 @@ class LaporanController extends Controller
                             $isi = $isi->whereHas('laporan.jadwal', function ($q) use ($date) {
                                 $q->whereDate('tanggal', $date);
                             });
-                        }                    
+                        }   
+
+                        if ($request->nama) {
+                            $nama = $request->nama;
+                            $isi = $isi->whereHas('laporan.user', function ($q) use ($nama) {
+                                $q->where('nama', 'ilike', '%'. $nama .'%');
+                            });
+                        }                
 
                         $isi = $isi->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama;
                         });
-                        $isi->map(function ($isi) {
+                        $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
                         });
                         $isi->map(function ($isi) {
@@ -73,70 +105,230 @@ class LaporanController extends Controller
                                 return $isi->keadaan = $isi->isian;
                             }
                         });
-                        
-                        return $cek->kondisi = $isi;
+                        return [$cek->kondisi = $isi, $cek->s = $s];
                     });
-                    return $shift->data = $cek;
-                });
-                
 
-                // return $cek;
-                $laporan = Laporan::where('form_jenis', 'FCT')->with('isi.pilihan','isi.form_isi','user','jadwal.shift')->orderBy('created_at', 'asc');
+                    return [$shift->data = $cek, $shift->jam = $a[1][1]];
+                });
+
+               
+                if (empty($shift)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Not Found',
+                        'code'    => 404,
+                    ]);
+                } 
+                else {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'OK',
+                        'code'    => 200,
+                        'data'  => $shift,
+                        'catatan_shift' => $catatan
+                    ]);
+                }
+
+            } catch (\Throwable $th) {
+                return writeLog($th->getMessage());
+            }
+        }
+        
+    }
+
+    public function getLaporanCln(Request $request)
+    {
+        // return $request->date;
+        $decodeToken = parseJwt($this->request->header('Authorization'));
+        $uuid        = $decodeToken->user->uuid;
+        $user        = User::where('uuid', $uuid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak ditemukan',
+                'code'    => 404,
+            ]);
+        }
+        else {
+            try {
+                $shift = Shift::orderBy('created_at', 'asc')->where('created_at', '!=', null);
+                      
                 $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
                 
                 if ($request->date) {
                     $date = $request->date;
-                    $laporan = $laporan->whereHas('jadwal.shift', function ($q) use ($date) {
-                        $q->whereDate('tanggal', $date);
-                    });
                     $catatan = $catatan->whereDate('created_at', '=', $date);
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
-                    $laporan = $laporan->whereHas('user', function ($q) use ($nama) {
-                        $q->where('nama', 'ilike', '%'. $nama .'%');
-                    });
                     $catatan = $catatan->whereHas('user', function ($q) use ($nama) {
                         $q->where('nama', 'ilike', '%'. $nama .'%');
                     });
                 }
                 if ($request->shift) {
-                    $shift = $request->shift;
-                    $laporan = $laporan->whereHas('jadwal.shift', function ($q) use ($shift) {
-                        $q->where('kode', $shift);
-                    });
-                    $catatan = $catatan->whereHas('jadwal.shift', function ($q) use ($shift) {
-                        $q->where('kode', $shift);
+                    $sh = $request->shift;
+                    $shift = $shift->where('kode', $sh);
+                    $catatan = $catatan->whereHas('jadwal.shift', function ($q) use ($sh) {
+                        $q->where('kode', $sh);
                     });
                 }
 
-                $laporan = $laporan->get();
+                $shift = $shift->get();
                 $catatan = $catatan->get();
 
-                $laporan->map(function ($laporan) {
-                    if ($laporan->isi != null) {
-                        foreach($laporan->isi as $isilaporan) {
-                            return $isilaporan->lokasi = $isilaporan->form_isi->judul;
-                        }
-                    }    
-                });
-                $laporan->map(function ($laporan) {
-                    if ($laporan->isi != null) {
-                        foreach($laporan->isi as $isilaporan) {
-                            if ($isilaporan->pilihan){
-                                return $isilaporan->kondisi = $isilaporan->pilihan->pilihan;
+                $shift->map(function ($shift) use ($request){
+                    $cek = FormIsian::where('form_jenis', 'CLN')->get();
+                    $a = $cek->map(function ($cek) use ($request, $shift) {
+                        $isi= LaporanIsi::where('form_isian_id', $cek->uuid)->with('laporan.jadwal.shift','laporan.user','pilihan')->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
+                            $q->where('nama', $shift->nama);
+                        });
+                            
+                        if ($request->date) {
+                            $date = $request->date;
+                            $isi = $isi->whereHas('laporan.jadwal', function ($q) use ($date) {
+                                $q->whereDate('tanggal', $date);
+                            });
+                        }   
+
+                        if ($request->nama) {
+                            $nama = $request->nama;
+                            $isi = $isi->whereHas('laporan.user', function ($q) use ($nama) {
+                                $q->where('nama', 'ilike', '%'. $nama .'%');
+                            });
+                        }                
+
+                        $isi = $isi->get();
+
+                        $isi->map(function ($isi) {
+                            return $isi->eos = $isi->laporan->user->nama;
+                        });
+                        $s = $isi->map(function ($isi) {
+                            return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
+                        });
+                        $isi->map(function ($isi) {
+                            if ($isi->pilihan){
+                                return $isi->keadaan = $isi->pilihan->pilihan;
                             } else {
-                                return $isilaporan->kondisi = $isilaporan->isian;
+                                return $isi->keadaan = $isi->isian;
                             }
-                        }
-                    }    
+                        });
+                        return [$cek->kondisi = $isi, $cek->s = $s];
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1]];
                 });
-                $laporan->map(function ($laporan) {
-                    return $laporan->jam_laporan = Carbon::parse($laporan->created_at)->format('H:i');
-                });
+
+               
+                if (empty($shift)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Not Found',
+                        'code'    => 404,
+                    ]);
+                } 
+                else {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'OK',
+                        'code'    => 200,
+                        'data'  => $shift,
+                        'catatan_shift' => $catatan
+                    ]);
+                }
+
+            } catch (\Throwable $th) {
+                return writeLog($th->getMessage());
+            }
+        }
+        
+    }
+
+    public function getLaporanCctv(Request $request)
+    {
+        // return $request->date;
+        $decodeToken = parseJwt($this->request->header('Authorization'));
+        $uuid        = $decodeToken->user->uuid;
+        $user        = User::where('uuid', $uuid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak ditemukan',
+                'code'    => 404,
+            ]);
+        }
+        else {
+            try {
+                $shift = Shift::orderBy('created_at', 'asc')->where('created_at', '!=', null);
+                      
+                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
                 
-                // $laporan = $laporan->setPath('https://pelindo.primakom.co.id/api/pelaporan/laporan/?date='.$request->date.'&?nama='.$request->nama.'&?shift='.$request->shift.'&?jenis='.$request->kode_jenis);
-                if (empty($laporan)) {
+                if ($request->date) {
+                    $date = $request->date;
+                    $catatan = $catatan->whereDate('created_at', '=', $date);
+                }
+                if ($request->nama) {
+                    $nama = $request->nama;
+                    $catatan = $catatan->whereHas('user', function ($q) use ($nama) {
+                        $q->where('nama', 'ilike', '%'. $nama .'%');
+                    });
+                }
+                if ($request->shift) {
+                    $sh = $request->shift;
+                    $shift = $shift->where('kode', $sh);
+                    $catatan = $catatan->whereHas('jadwal.shift', function ($q) use ($sh) {
+                        $q->where('kode', $sh);
+                    });
+                }
+
+                $shift = $shift->get();
+                $catatan = $catatan->get();
+
+                $shift->map(function ($shift) use ($request){
+                    $cek = FormIsian::where('form_jenis', 'CCTV')->get();
+                    $a = $cek->map(function ($cek) use ($request, $shift) {
+                        $isi= LaporanIsi::where('form_isian_id', $cek->uuid)->with('laporan.jadwal.shift','laporan.user','pilihan')->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
+                            $q->where('nama', $shift->nama);
+                        });
+                            
+                        if ($request->date) {
+                            $date = $request->date;
+                            $isi = $isi->whereHas('laporan.jadwal', function ($q) use ($date) {
+                                $q->whereDate('tanggal', $date);
+                            });
+                        }   
+
+                        if ($request->nama) {
+                            $nama = $request->nama;
+                            $isi = $isi->whereHas('laporan.user', function ($q) use ($nama) {
+                                $q->where('nama', 'ilike', '%'. $nama .'%');
+                            });
+                        }                
+
+                        $isi = $isi->get();
+
+                        $isi->map(function ($isi) {
+                            return $isi->eos = $isi->laporan->user->nama;
+                        });
+                        $s = $isi->map(function ($isi) {
+                            return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
+                        });
+                        $isi->map(function ($isi) {
+                            if ($isi->pilihan){
+                                return $isi->keadaan = $isi->pilihan->pilihan;
+                            } else {
+                                return $isi->keadaan = $isi->isian;
+                            }
+                        });
+                        return [$cek->kondisi = $isi, $cek->s = $s];
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1]];
+                });
+
+               
+                if (empty($shift)) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Not Found',

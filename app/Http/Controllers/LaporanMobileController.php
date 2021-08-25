@@ -80,21 +80,33 @@ class LaporanMobileController extends Controller
             $from = date('Y-m-d H:i:s', $jammulai);
             $to = date('Y-m-d H:i:s', $jamselesaiplus3);
 
+            // cek sudah masuk waktu pengiriman laporan shift / belum
             if(($jammulai <= $jamsekarang) && ($jamselesaiplus3 >= $jamsekarang)) {
                 $cek = LaporanShift::where('user_id', $uuid)->where('jadwal_shift_id', $this->request->jadwal_shift_id)->whereBetween('created_at', [$from, $to])->first();
                 if ($cek) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Sudah melakukan pelaporan shift hari ini, pelaporan shift hanya bisa dilakukan 1 kali',
-                            'code'    => 404
+                        'message' => 'Kamu sudah melakukan pelaporan shift hari ini, pelaporan shift hanya bisa dilakukan 1 kali',
+                        'code'    => 404
                     ]);
                 }
             } else {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Batas waktu pengiriman laporan shift sudah berakhir',
-                    'code'    => 200
-                ]);
+                // cek sudah masuk waktu shift / belum
+                if (($jammulai >= $jamsekarang) && ($jamselesaiplus3 >= $jamsekarang)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda belum bisa melakukan pelaporan karena belum masuk jam shift anda',
+                        'code'    => 404
+                    ]);
+                }
+
+                if (($jammulai <= $jamsekarang) && ($jamselesaiplus3 <= $jamsekarang)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Batas waktu pengiriman laporan shift sudah berakhir',
+                        'code'    => 404
+                    ]);
+                }
             }
             
             $catatan = LaporanShift::create([
@@ -212,7 +224,8 @@ class LaporanMobileController extends Controller
             // cek laporan sedang dikerjakan atau tidak
             $jam_sekarang = date('Y-m-d H').':00:00';
             $jam_sekarang_plus1 = date('Y-m-d H', strtotime('+1 hour')).':00:00';
-            $where = array('jadwal_shift_id' => $this->request->jadwal_shift_id, 'form_jenis' => $this->request->form_jenis);
+            $where = array('form_jenis' => $this->request->form_jenis);
+            // 'jadwal_shift_id' => $this->request->jadwal_shift_id, 
 
             $cek = LaporanDikerjakan::where($where);
             $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
