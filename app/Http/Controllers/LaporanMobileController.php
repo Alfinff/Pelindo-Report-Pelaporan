@@ -173,6 +173,69 @@ class LaporanMobileController extends Controller
         }
     }
 
+    public function updateCatatanShift(Request $request, $id)
+    {
+        $validator = Validator::make($this->request->all(), [
+            'judul' => 'required',
+            'isi' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return writeLogValidation($validator->errors());
+        }
+
+        DB::beginTransaction();
+        try {
+            $decodeToken = parseJwt($this->request->header('Authorization'));
+            $uuid        = $decodeToken->user->uuid;
+            $user        = User::where('uuid', $uuid)->first();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            // cek catatan shift user
+            $cekCatatan = LaporanShift::where('uuid', $id)->where('user_id', $uuid)->first();
+            if (!$cekCatatan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Laporan Shift tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            // bisa di edit atau tidak
+            $created_at = strtotime($cekCatatan->created_at);
+            $batasedit = strtotime('-1 days');
+
+            if($created_at <= $batasedit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Laporan tidak bisa diedit karena melewati batas waktu yang ditentukan',
+                    'code'    => 404,
+                ]);
+            }
+            
+            $cekCatatan->update([
+                'judul' => $this->request->judul,
+                'isi' => $this->request->isi,
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil edit laporan shift',
+                'code'    => 200,
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return writeLog($th->getMessage());
+        }
+    }
+
     public function formIsian()
     {
 
