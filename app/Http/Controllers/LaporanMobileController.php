@@ -73,7 +73,12 @@ class LaporanMobileController extends Controller
 
             $getShift = Shift::where('kode', $cekJadwal->kode_shift)->first();
             $jammulai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->mulai)));
-            $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+            if($cekJadwal->kode_shift == 'M') {
+                $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+                $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime("+1 day", $jamselesai)));
+            } else {
+                $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));   
+            }
             $js = date('Y-m-d H:i:s', $jamselesai);
             $jamselesaiplus3 = strtotime('+3 hour', strtotime($js));
             $jamsekarang = strtotime(date('Y-m-d H:i:s'));
@@ -330,7 +335,12 @@ class LaporanMobileController extends Controller
             // cek pada jam ini termasuk range jam shift user yang mengirim atau tidak
             $getShift = Shift::where('kode', $cekJadwal->kode_shift)->first();
             $jammulai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->mulai)));
-            $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+            if($cekJadwal->kode_shift == 'M') {
+                $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+                $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime("+1 day", $jamselesai)));
+            } else {
+                $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));   
+            }
             $jamsekarang = strtotime(date('Y-m-d H:i:s'));
 
             // jika jam shift sudah terlewat maka ambil created ad dari laporan di kerjakan

@@ -98,6 +98,10 @@ class LaporanController extends Controller
                         $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
                         });
+
+                        $warna = $isi->map(function ($isi) {
+                            return $isi->warna = $isi->laporan->user->color;
+                        });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
                                 return $isi->keadaan = $isi->pilihan->pilihan;
@@ -105,10 +109,11 @@ class LaporanController extends Controller
                                 return $isi->keadaan = $isi->isian;
                             }
                         });
-                        return [$cek->kondisi = $isi, $cek->s = $s];
+
+                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1]];
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2]];
                 });
 
                
@@ -206,6 +211,10 @@ class LaporanController extends Controller
                         $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
                         });
+
+                        $warna = $isi->map(function ($isi) {
+                            return $isi->warna = $isi->laporan->user->color;
+                        });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
                                 return $isi->keadaan = $isi->pilihan->pilihan;
@@ -213,10 +222,11 @@ class LaporanController extends Controller
                                 return $isi->keadaan = $isi->isian;
                             }
                         });
-                        return [$cek->kondisi = $isi, $cek->s = $s];
+
+                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1]];
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2]];
                 });
 
                
@@ -314,6 +324,10 @@ class LaporanController extends Controller
                         $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
                         });
+
+                        $warna = $isi->map(function ($isi) {
+                            return $isi->warna = $isi->laporan->user->color;
+                        });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
                                 return $isi->keadaan = $isi->pilihan->pilihan;
@@ -321,10 +335,11 @@ class LaporanController extends Controller
                                 return $isi->keadaan = $isi->isian;
                             }
                         });
-                        return [$cek->kondisi = $isi, $cek->s = $s];
+
+                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1]];
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2]];
                 });
 
                
