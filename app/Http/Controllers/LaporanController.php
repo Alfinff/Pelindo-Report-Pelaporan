@@ -44,7 +44,7 @@ class LaporanController extends Controller
         }
         else {
             try {
-                $shift = Shift::orderBy('created_at', 'asc')->where('created_at', '!=', null);
+                $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
                 
@@ -157,7 +157,7 @@ class LaporanController extends Controller
         }
         else {
             try {
-                $shift = Shift::orderBy('created_at', 'asc')->where('created_at', '!=', null);
+                $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
                 
@@ -270,7 +270,7 @@ class LaporanController extends Controller
         }
         else {
             try {
-                $shift = Shift::orderBy('created_at', 'asc')->where('created_at', '!=', null);
+                $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
                 

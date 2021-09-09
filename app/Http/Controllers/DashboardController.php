@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Shift;
 use App\Models\Informasi;
 use App\Models\InformasiUser;
 use App\Models\Jadwal;
@@ -65,6 +66,79 @@ class DashboardController extends Controller
             $shifthariini = [];
             $shifthariini = Jadwal::with('user', 'shift')->whereNotIn('kode_shift', ['L'])->whereDate('tanggal', date('Y-m-d'))->get();
 
+            $shift = Shift::orderBy('mulai', 'asc')->whereNotIn('kode', ['L']);
+
+            if ($request->shift) {
+                $shift = $shift->where('kode', $request->shift);
+            } 
+
+            $shift = $shift->get();
+
+            $shift = $shift->map(function ($dataShift) use ($request){
+                $datanya = [];
+
+                $perangkat  = [];
+                $perangkat  = FormIsian::orderBy('judul', 'asc');
+
+                $perangkat = $perangkat->where('kategori', 'PAC');
+
+                $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
+
+                $perangkat = $perangkat->get();
+
+                $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $dataShift){
+                    
+                    $range = create_time_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
+
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc');
+
+                    if ($request->date) {
+                        $date = $request->date;
+                        $laporan = $laporan->whereDate('created_at', '=', date('Y-m-d', strtotime($date)));
+                    }
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $dataPerangkat->uuid);
+
+                    $laporan = $laporan->get()->groupBy(function($date) {
+                        return Carbon::parse($date->created_at)->format('H');
+                    });
+
+
+                    foreach($range as $time) {
+                        foreach($laporan as $jam => $val) {
+                            if((int)$jam == $time) {
+                                foreach($val as $item) {
+                                    if(is_int((int)$item->isian)) {
+                                        $kalkulasi[(int)$jam] = (int)$item->isian;
+                                    } else {
+                                        $kalkulasi[(int)$jam] = 0;
+                                    }
+                                }
+                            } else {
+                                $kalkulasi[(int)$time] = 0;
+                            }
+                        }
+                    }
+
+                    $return['perangkat'] = $dataPerangkat->judul;
+                    $return['perjam'] = $kalkulasi;
+
+                    return $return;
+                });
+
+                $datanya['shift'] = $dataShift;
+                $datanya['kalkulasi'] = $dataLaporan; 
+
+                return $datanya;
+            });
+
             $data = [
                 'jumlah' => [
                     'eos' => $jumlaheos,
@@ -80,7 +154,8 @@ class DashboardController extends Controller
                     ]
                 ],
                 'chartlaporan' => $chartLaporan,
-                'shifthariini' => $shifthariini
+                'shifthariini' => $shifthariini,
+                'humidity' => $shift
             ];
 
             return response()->json([

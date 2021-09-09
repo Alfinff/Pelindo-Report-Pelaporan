@@ -132,3 +132,21 @@ function sendFcm($to, $notification, $data)
 function generateRandomString($length = 6) {
 	return substr(str_shuffle(str_repeat($x = '1234567890', ceil($length / strlen($x)))), 1, $length);
 }
+
+function create_time_range($start, $end, $interval = '30 mins', $format = '12') {
+    $startTime = strtotime($start); 
+    $endTime   = strtotime($end);
+    $returnTimeFormat = ($format == '12')?'g A':'G';
+
+    $current   = time(); 
+    $addTime   = strtotime('+'.$interval, $current); 
+    $diff      = $addTime - $current;
+
+    $times = array(); 
+    while ($startTime < $endTime) { 
+        $times[] = date($returnTimeFormat, $startTime); 
+        $startTime += $diff; 
+    } 
+    $times[] = date($returnTimeFormat, $startTime); 
+    return $times; 
+}
