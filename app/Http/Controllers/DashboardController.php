@@ -87,8 +87,11 @@ class DashboardController extends Controller
                 $perangkat = $perangkat->get();
 
                 $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $dataShift){
-                    
+                    $kalkulasi = [];
+                    $range = [];
+                    $rangejam = [];
                     $range = create_time_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
+                    $rangejam = create_jam_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
 
                     $laporan = [];
                     $laporan = LaporanIsi::orderBy('created_at', 'asc');
@@ -112,23 +115,28 @@ class DashboardController extends Controller
 
 
                     foreach($range as $time) {
-                        foreach($laporan as $jam => $val) {
-                            if((int)$jam == $time) {
-                                foreach($val as $item) {
-                                    if(is_int((int)$item->isian)) {
-                                        $kalkulasi[(int)$jam] = (int)$item->isian;
-                                    } else {
-                                        $kalkulasi[(int)$jam] = 0;
+                        if(!empty($laporan) && count($laporan)) {
+                            foreach($laporan as $jam => $val) {
+                                if((int)$jam == $time) {
+                                    foreach($val as $item) {
+                                        if(is_int((int)$item->isian)) {
+                                            $kalkulasi[(int)$jam] = (int)$item->isian;
+                                        } else {
+                                            $kalkulasi[(int)$jam] = 0;
+                                        }
                                     }
+                                } else {
+                                    $kalkulasi[(int)$time] = 0;
                                 }
-                            } else {
-                                $kalkulasi[(int)$time] = 0;
                             }
+                        } else {
+                            $kalkulasi[(int)$time] = 0;
                         }
                     }
 
                     $return['perangkat'] = $dataPerangkat->judul;
                     $return['perjam'] = $kalkulasi;
+                    $return['jam'] = $rangejam;
 
                     return $return;
                 });

@@ -150,3 +150,25 @@ function create_time_range($start, $end, $interval = '30 mins', $format = '12') 
     $times[] = date($returnTimeFormat, $startTime); 
     return $times; 
 }
+
+function create_jam_range($start, $end, $interval = '30 mins', $format = '12') {
+    $startTime = strtotime($start); 
+    $endTime   = strtotime($end);
+    $returnTimeFormat = ($format == '12')?'g A':'G';
+
+    $current   = time(); 
+    $addTime   = strtotime('+'.$interval, $current); 
+    $diff      = $addTime - $current;
+
+    $times = array(); 
+    while ($startTime < $endTime) { 
+        $times[] = 'Jam '.date($returnTimeFormat, $startTime); 
+        $startTime += $diff; 
+    } 
+	if(date($returnTimeFormat, $startTime) == '0') {
+		$times[] = 'Jam 00';
+	} else {
+		$times[] = 'Jam '.date($returnTimeFormat, $startTime);
+	}
+    return $times; 
+}
