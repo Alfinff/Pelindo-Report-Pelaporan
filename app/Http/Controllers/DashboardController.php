@@ -47,9 +47,34 @@ class DashboardController extends Controller
             $jumlahsupervisor = 0; $jumlahsupervisor = User::where('role', env('ROLE_SPV'))->count();
             $jumlahsuperadmin = 0; $jumlahsuperadmin = User::where('role', env('ROLE_SPA'))->count();
             $jumlahlaporanshift = 0; $jumlahlaporanshift = LaporanShift::whereDate('created_at', date('Y-m-d'))->count();
-            $cctv = 0; $cctv = Laporan::whereDate('created_at', date('Y-m-d'))->where('form_jenis', env('FORM_CCTV'))->count(); $cctv = ((int)$cctv/24)*100; $cctv = number_format((double)$cctv, 2, '.', '');
-            $cleaning = 0; $cleaning = Laporan::whereDate('created_at', date('Y-m-d'))->where('form_jenis', env('FORM_CLEANING'))->count(); $cleaning = ((int)$cleaning/24)*100; $cleaning = number_format((double)$cleaning, 2, '.', '');
-            $facilities = 0; $facilities = Laporan::whereDate('created_at', date('Y-m-d'))->where('form_jenis', env('FORM_FACILITIES'))->count(); $facilities = ((int)$facilities/24)*100; $facilities = number_format((double)$facilities, 2, '.', '');
+
+            $cctv = 0; 
+            $cleaning = 0; 
+            $facilities = 0; 
+
+            $cctv = Laporan::where('form_jenis', env('FORM_CCTV')); 
+            $cleaning = Laporan::where('form_jenis', env('FORM_CLEANING')); 
+            $facilities = Laporan::where('form_jenis', env('FORM_FACILITIES'));
+
+
+            if ($request->date) {
+                $cctv = $cctv->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
+                $cleaning = $cleaning->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
+                $facilities = $facilities->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
+            } else {
+                $cctv = $cctv->whereDate('created_at', date('Y-m-d'));
+                $cleaning = $cleaning->whereDate('created_at', date('Y-m-d'));
+                $facilities = $facilities->whereDate('created_at', date('Y-m-d'));
+            }
+
+            
+            $cctv = ((int)$cctv->count()/24)*100; 
+            $cleaning = ((int)$cleaning->count()/24)*100; 
+            $facilities = ((int)$facilities->count()/24)*100; 
+            
+            $cctv = number_format((double)$cctv, 2, '.', '');
+            $cleaning = number_format((double)$cleaning, 2, '.', '');
+            $facilities = number_format((double)$facilities, 2, '.', '');
 
             $chartLaporan = [];
             foreach(User::where('role', env('ROLE_EOS'))->get() as $item => $val) {
