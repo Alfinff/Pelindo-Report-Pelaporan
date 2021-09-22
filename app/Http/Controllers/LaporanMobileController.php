@@ -131,32 +131,52 @@ class LaporanMobileController extends Controller
                 'jenis'        => env('NOTIF_CATATAN'),
             ]);
 
-            $kodeShift = strtolower($cekJadwal->kode_shift);
-            if($kodeShift == 'p') {
-                $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'S')->where('tanggal', date('Y-m-d'))->get();
-            } else if($kodeShift == 's') {
-                $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'M')->where('tanggal', date('Y-m-d'))->get();
-            } else if($kodeShift == 'm') {
-                $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'P')->where('tanggal', date('Y-m-d', strtotime(date('Y-m-d'). ' +1 day')))->get();
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Nama jadwal tidak ditemukan',
-                    'code'    => 404,
-                ]);
-            }
+            // $kodeShift = strtolower($cekJadwal->kode_shift);
+            // if($kodeShift == 'p') {
+            //     $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'S')->where('tanggal', date('Y-m-d'))->get();
+            // } else if($kodeShift == 's') {
+            //     $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'M')->where('tanggal', date('Y-m-d'))->get();
+            // } else if($kodeShift == 'm') {
+            //     $shiftSelanjutnya = Jadwal::with('user')->where('kode_shift', 'P')->where('tanggal', date('Y-m-d', strtotime(date('Y-m-d'). ' +1 day')))->get();
+            // } else {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Nama jadwal tidak ditemukan',
+            //         'code'    => 404,
+            //     ]);
+            // }
 
-            // blast notif Info Ke Shift Selanjutnya
-            foreach ($shiftSelanjutnya as $item) {
+            // // blast notif Info Ke Shift Selanjutnya
+            // foreach ($shiftSelanjutnya as $item) {
+            //     InformasiUser::create([
+            //         'uuid'         => generateUuid(),
+            //         'user_id'      => $item->user->uuid,
+            //         'informasi_id' => $informasi->uuid,
+            //         'dibaca'       => 0,
+            //     ]);
+
+            //     if ($item->user->fcm_token) {
+            //         $to      = $item->user->fcm_token;
+            //         $payload = [
+            //             'title'    => 'Laporan Shift',
+            //             'body'     => $this->request->isi,
+            //             'priority' => 'high',
+            //         ];
+            //         sendFcm($to, $payload, $payload);
+            //     }
+            // }
+
+            // kirim ke semua user
+            foreach(User::all() as $item) {
                 InformasiUser::create([
                     'uuid'         => generateUuid(),
-                    'user_id'      => $item->user->uuid,
+                    'user_id'      => $item->uuid,
                     'informasi_id' => $informasi->uuid,
                     'dibaca'       => 0,
                 ]);
-
-                if ($item->user->fcm_token) {
-                    $to      = $item->user->fcm_token;
+    
+                if ($item->fcm_token) {
+                    $to      = $item->fcm_token;
                     $payload = [
                         'title'    => 'Laporan Shift',
                         'body'     => $this->request->isi,

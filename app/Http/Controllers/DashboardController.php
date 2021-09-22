@@ -56,6 +56,10 @@ class DashboardController extends Controller
             $cleaning = Laporan::where('form_jenis', env('FORM_CLEANING')); 
             $facilities = Laporan::where('form_jenis', env('FORM_FACILITIES'));
 
+            $date = date('Y-m-d');
+            if ($request->date) {
+                $date = date('Y-m-d', strtotime($request->date));
+            }
 
             if ($request->date) {
                 $cctv = $cctv->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
@@ -76,17 +80,17 @@ class DashboardController extends Controller
             $cleaning = number_format((double)$cleaning, 2, '.', '');
             $facilities = number_format((double)$facilities, 2, '.', '');
 
-            $chartLaporan = [];
-            foreach(User::where('role', env('ROLE_EOS'))->get() as $item => $val) {
-                $countLaporanForm = Laporan::with('user')->where('user_id', $val->uuid)->whereMonth('created_at', date('m'))->count();
-                $countLaporanShift = LaporanShift::with('user')->where('user_id', $val->uuid)->whereMonth('created_at', date('m'))->count();
+            // $chartLaporan = [];
+            // foreach(User::where('role', env('ROLE_EOS'))->get() as $item => $val) {
+            //     $countLaporanForm = Laporan::with('user')->where('user_id', $val->uuid)->whereMonth('created_at', date('m'))->count();
+            //     $countLaporanShift = LaporanShift::with('user')->where('user_id', $val->uuid)->whereMonth('created_at', date('m'))->count();
 
-                $data['user'] = $val->nama;
-                $data['laporanform'] = $countLaporanForm;
-                $data['laporanshift'] = $countLaporanShift;
+            //     $data['user'] = $val->nama;
+            //     $data['laporanform'] = $countLaporanForm;
+            //     $data['laporanshift'] = $countLaporanShift;
 
-                array_push($chartLaporan, $data);
-            }
+            //     array_push($chartLaporan, $data);
+            // }
 
             $shifthariini = [];
             $shifthariini = Jadwal::with('user', 'shift')->whereNotIn('kode_shift', ['L'])->whereDate('tanggal', date('Y-m-d'))->get();
@@ -99,7 +103,8 @@ class DashboardController extends Controller
 
             $shift = $shift->get();
 
-            $shift = $shift->map(function ($dataShift) use ($request){
+            $humidity = [];
+            $humidity = $shift->map(function ($dataShift) use ($request){
                 $datanya = [];
 
                 $perangkat  = [];
@@ -172,7 +177,17 @@ class DashboardController extends Controller
                 return $datanya;
             });
 
+            // $ups  = FormIsian::orderBy('judul', 'asc');
+            // $perangkat = $perangkat->where('kategori', 'PAC');
+            // $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
+            // $perangkat = $perangkat->get();
+
+            // for($i=1;$i<=12;$i++) {
+            //     $data = LaporanIsi::whereMonth('created_at', $i)->whereYear('created_at', date('Y'))->get();
+            // }
+
             $data = [
+                'tanggal' => $date,
                 'jumlah' => [
                     'eos' => $jumlaheos,
                     'supervisor' => $jumlahsupervisor,
@@ -186,9 +201,14 @@ class DashboardController extends Controller
                         ]
                     ]
                 ],
-                'chartlaporan' => $chartLaporan,
+                'grafikbulanan' =>  [
+                    'system' => '',
+                    'loadampere' => '',
+                    'persenload' => '',
+                ],
+                // 'chartlaporan' => $chartLaporan,
                 'shifthariini' => $shifthariini,
-                'humidity' => $shift
+                'humidity' => $humidity
             ];
 
             return response()->json([
