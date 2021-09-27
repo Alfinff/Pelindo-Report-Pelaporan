@@ -70,7 +70,7 @@ class LaporanController extends Controller
                 $catatan = $catatan->get();
 
                 $shift->map(function ($shift) use ($request){
-                    $cek = FormIsian::where('form_jenis', 'FCT')->get();
+                    $cek = FormIsian::where('form_jenis', 'FCT')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
                     $a = $cek->map(function ($cek) use ($request, $shift) {
                         $isi= LaporanIsi::where('form_isian_id', $cek->uuid)->with('laporan.jadwal.shift','laporan.user','pilihan')->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
@@ -190,7 +190,7 @@ class LaporanController extends Controller
                 $catatan = $catatan->get();
 
                 $shift->map(function ($shift) use ($request){
-                    $cek = FormIsian::where('form_jenis', 'CLN')->get();
+                    $cek = FormIsian::where('form_jenis', 'CLN')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
                     $a = $cek->map(function ($cek) use ($request, $shift) {
                         $isi= LaporanIsi::where('form_isian_id', $cek->uuid)->with('laporan.jadwal.shift','laporan.user','pilihan')->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
@@ -219,6 +219,13 @@ class LaporanController extends Controller
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
                         });
 
+                        $rangejam = $isi->map(function ($isi) {
+                            $jamawal = Carbon::parse($isi->created_at)->format('H:00');
+                            $plus1jam = Carbon::parse($jamawal)->addHour(1);
+                            $jamakhir = $plus1jam->format('H:00');
+                            return $jamawal.'-'.$jamakhir;
+                        });
+
                         $warna = $isi->map(function ($isi) {
                             return $isi->warna = $isi->laporan->user->color;
                         });
@@ -230,10 +237,10 @@ class LaporanController extends Controller
                             }
                         });
 
-                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna];
+                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2]];
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
                 });
 
                
@@ -303,7 +310,7 @@ class LaporanController extends Controller
                 $catatan = $catatan->get();
 
                 $shift->map(function ($shift) use ($request){
-                    $cek = FormIsian::where('form_jenis', 'CCTV')->get();
+                    $cek = FormIsian::where('form_jenis', 'CCTV')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
                     $a = $cek->map(function ($cek) use ($request, $shift) {
                         $isi= LaporanIsi::where('form_isian_id', $cek->uuid)->with('laporan.jadwal.shift','laporan.user','pilihan')->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
@@ -332,6 +339,13 @@ class LaporanController extends Controller
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
                         });
 
+                        $rangejam = $isi->map(function ($isi) {
+                            $jamawal = Carbon::parse($isi->created_at)->format('H:00');
+                            $plus1jam = Carbon::parse($jamawal)->addHour(1);
+                            $jamakhir = $plus1jam->format('H:00');
+                            return $jamawal.'-'.$jamakhir;
+                        });
+
                         $warna = $isi->map(function ($isi) {
                             return $isi->warna = $isi->laporan->user->color;
                         });
@@ -343,10 +357,10 @@ class LaporanController extends Controller
                             }
                         });
 
-                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna];
+                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2]];
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
                 });
 
                

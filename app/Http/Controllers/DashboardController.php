@@ -109,11 +109,9 @@ class DashboardController extends Controller
 
                 $perangkat  = [];
                 $perangkat  = FormIsian::orderBy('judul', 'asc');
-
+                $perangkat = $perangkat->where('form_jenis', env('FORM_FACILITIES'));
                 $perangkat = $perangkat->where('kategori', 'PAC');
-
                 $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
-
                 $perangkat = $perangkat->get();
 
                 $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $dataShift){
@@ -177,14 +175,21 @@ class DashboardController extends Controller
                 return $datanya;
             });
 
-            // $ups  = FormIsian::orderBy('judul', 'asc');
-            // $perangkat = $perangkat->where('kategori', 'PAC');
-            // $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
-            // $perangkat = $perangkat->get();
+            
+            $ups1_voltage  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 1 Voltage (Vac) (R)%')->first();
+            $ups2_voltage  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 2 Voltage (Vac) (R)%')->first();
 
-            // for($i=1;$i<=12;$i++) {
-            //     $data = LaporanIsi::whereMonth('created_at', $i)->whereYear('created_at', date('Y'))->get();
-            // }
+            $ups1_ampere  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 1 Ampere (A) (S)%')->first();
+            $ups2_ampere  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 2 Ampere (A) (S)%')->first();
+
+            $ups1_loadlevel  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 1 Voltage (Vac) (R)%')->first();
+            $ups2_loadlevel  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 2 Voltage (Vac) (R)%')->first();
+
+            for($i=1;$i<=12;$i++) {
+
+                // $data = LaporanIsi::whereMonth('created_at', $i)->whereYear('created_at', date('Y'))->get();
+                
+            }
 
             $data = [
                 'tanggal' => $date,
