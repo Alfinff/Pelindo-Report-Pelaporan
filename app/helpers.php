@@ -172,3 +172,17 @@ function create_jam_range($start, $end, $interval = '30 mins', $format = '12') {
 	}
     return $times; 
 }
+
+function getrangedaymonth($month, $year)
+{
+	$range = [];
+
+	// jumlah hari bulan ini
+	$dayrange=cal_days_in_month(CAL_GREGORIAN,$month,$year);
+	
+	for($i = 1; $i <= ((int)$dayrange); $i++) {
+		array_push($range, $i);
+	}
+
+	return $range;
+}

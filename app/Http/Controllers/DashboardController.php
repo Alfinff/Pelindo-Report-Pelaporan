@@ -25,6 +25,20 @@ class DashboardController extends Controller
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->bulan = array(
+            '1' => 'Januari',
+            '2' => 'Februari',
+            '3' => 'Maret',
+            '4' => 'April',
+            '5' => 'Mei',
+            '6' => 'Juni',
+            '7' => 'Juli',
+            '8' => 'Agustus',
+            '9' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember',
+        );
     }
 
     public function getDashboard(Request $request)
@@ -176,19 +190,401 @@ class DashboardController extends Controller
             });
 
             
-            $ups1_voltage  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 1 Voltage (Vac) (R)%')->first();
-            $ups2_voltage  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 2 Voltage (Vac) (R)%')->first();
+            $whereUPS = array(
+                'form_jenis' => env('FORM_FACILITIES'),
+                'kategori' => 'UPS'
+            );
+            $whereUPSAPC = array(
+                'form_jenis' => env('FORM_FACILITIES'),
+                'kategori' => 'UPS-APC'
+            );
 
-            $ups1_ampere  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 1 Ampere (A) (S)%')->first();
-            $ups2_ampere  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 2 Ampere (A) (S)%')->first();
+            $whereUPSLIKE = "tipe LIKE '%ISIAN%'";
+            $whereUPSAPCLIKE = "tipe LIKE '%DROPDOWN%'";
 
-            $ups1_loadlevel  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 1 Voltage (Vac) (R)%')->first();
-            $ups2_loadlevel  = FormIsian::where('form_jenis', env('FORM_FACILITIES'))->where('kategori', 'UPS')->where('tipe', 'LIKE', '%ISIAN%')->where('judul', 'LIKE', 'UPS 2 Voltage (Vac) (R)%')->first();
+            $where_ups1_ampere = "judul LIKE 'UPS 1 Ampere (A) (R)%' OR judul LIKE 'UPS 1 Ampere (A) (S)%' OR judul LIKE 'UPS 1 Ampere (A) (T)%'";
+            $where_ups1_voltage = "judul LIKE 'UPS 1 Voltage (Vac) (R)%' OR judul LIKE 'UPS 1 Voltage (Vac) (S)%' OR judul LIKE 'UPS 1 Voltage (Vac) (T)%'";
+            $where_ups1_loadlevel = "judul LIKE 'UPS 1 Load Level (%) (R)%' OR judul LIKE 'UPS 1 Load Level (%) (S)%' OR judul LIKE 'UPS 1 Load Level (%) (T)%'";
 
+            $where_ups2_ampere = "judul LIKE 'UPS 2 Ampere (A) (R)%' OR judul LIKE 'UPS 2 Ampere (A) (S)%' OR judul LIKE 'UPS 2 Ampere (A) (T)%'";
+            $where_ups2_voltage = "judul LIKE 'UPS 2 Voltage (Vac) (R)%' OR judul LIKE 'UPS 2 Voltage (Vac) (S)%' OR judul LIKE 'UPS 2 Voltage (Vac) (T)%'";
+            $where_ups2_loadlevel = "judul LIKE 'UPS 2 Load Level (%) (R)%' OR judul LIKE 'UPS 2 Load Level (%) (S)%' OR judul LIKE 'UPS 2 Load Level (%) (T)%'";
+
+            $where_upsapc_ampere = "judul LIKE 'Iout (A) (R)%' OR judul LIKE 'Iout (A) (S)%' OR judul LIKE 'Iout (A) (T)%'";
+            $where_upsapc_voltage = "judul LIKE 'Vout (Vac) (R)%' OR judul LIKE 'Vout (Vac) (S)%' OR judul LIKE 'Vout (Vac) (T)%'";
+            $where_upsapc_runtime = "judul LIKE 'Runtime (min) (R)%' OR judul LIKE 'Runtime (min) (S)%' OR judul LIKE 'Runtime (min) (T)%'";
+
+            $ups1_ampere  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_ampere)->get();
+            $ups1_voltage  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_voltage)->get();
+            $ups1_loadlevel  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_loadlevel)->get();
+
+            $ups2_ampere  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups2_ampere)->get();
+            $ups2_voltage  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups2_voltage)->get();
+            $ups2_loadlevel  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups2_loadlevel)->get();
+
+            $upsapc_ampere  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_ampere)->get();
+            $upsapc_voltage  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_voltage)->get();
+            $upsapc_runtime  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_runtime)->get();
+
+
+            $humidityperbulan = [];
             for($i=1;$i<=12;$i++) {
+                $range = 0;
+                $range = getrangedaymonth($i, date('Y'));
 
-                // $data = LaporanIsi::whereMonth('created_at', $i)->whereYear('created_at', date('Y'))->get();
-                
+                $kalkulasi_ups1_ampere[$this->bulan[$i]] = 0;
+                foreach($ups1_ampere as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_ups1_ampere[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_ups1_ampere[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_ups1_ampere[$this->bulan[$i]] = ((int)$kalkulasi_ups1_ampere[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_ups1_ampere[$this->bulan[$i]] = number_format((double)$kalkulasi_ups1_ampere[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_ups1_ampere[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_ups2_ampere[$this->bulan[$i]] = 0;
+                foreach($ups2_ampere as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_ups2_ampere[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_ups2_ampere[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_ups2_ampere[$this->bulan[$i]] = ((int)$kalkulasi_ups2_ampere[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_ups2_ampere[$this->bulan[$i]] = number_format((double)$kalkulasi_ups2_ampere[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_ups2_ampere[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_upsapc_ampere[$this->bulan[$i]] = 0;
+                foreach($upsapc_ampere as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_upsapc_ampere[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_upsapc_ampere[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_upsapc_ampere[$this->bulan[$i]] = ((int)$kalkulasi_upsapc_ampere[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_upsapc_ampere[$this->bulan[$i]] = number_format((double)$kalkulasi_upsapc_ampere[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_upsapc_ampere[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_ups1_voltage[$this->bulan[$i]] = 0;
+                foreach($ups1_voltage as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_ups1_voltage[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_ups1_voltage[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_ups1_voltage[$this->bulan[$i]] = ((int)$kalkulasi_ups1_voltage[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_ups1_voltage[$this->bulan[$i]] = number_format((double)$kalkulasi_ups1_voltage[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_ups1_voltage[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_ups2_voltage[$this->bulan[$i]] = 0;
+                foreach($ups2_voltage as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_ups2_voltage[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_ups2_voltage[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_ups2_voltage[$this->bulan[$i]] = ((int)$kalkulasi_ups2_voltage[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_ups2_voltage[$this->bulan[$i]] = number_format((double)$kalkulasi_ups2_voltage[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_ups2_voltage[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_upsapc_voltage[$this->bulan[$i]] = 0;
+                foreach($upsapc_voltage as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_upsapc_voltage[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_upsapc_voltage[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_upsapc_voltage[$this->bulan[$i]] = ((int)$kalkulasi_upsapc_voltage[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_upsapc_voltage[$this->bulan[$i]] = number_format((double)$kalkulasi_upsapc_voltage[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_upsapc_voltage[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_ups1_loadlevel[$this->bulan[$i]] = 0;
+                foreach($ups1_loadlevel as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_ups1_loadlevel[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_ups1_loadlevel[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_ups1_loadlevel[$this->bulan[$i]] = ((int)$kalkulasi_ups1_loadlevel[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_ups1_loadlevel[$this->bulan[$i]] = number_format((double)$kalkulasi_ups1_loadlevel[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_ups1_loadlevel[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_ups2_loadlevel[$this->bulan[$i]] = 0;
+                foreach($ups2_loadlevel as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_ups2_loadlevel[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_ups2_loadlevel[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_ups2_loadlevel[$this->bulan[$i]] = ((int)$kalkulasi_ups2_loadlevel[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_ups2_loadlevel[$this->bulan[$i]] = number_format((double)$kalkulasi_ups2_loadlevel[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_ups2_loadlevel[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $kalkulasi_upsapc_runtime[$this->bulan[$i]] = 0;
+                foreach($upsapc_runtime as $item) {
+                    $laporan = [];
+                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                    if ($request->shift) {
+                        $sh = $request->shift;
+                        $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                            $q->where('kode', $sh);
+                        });
+                    }
+
+                    $laporan = $laporan->where('form_isian_id', $item->uuid);
+                    $laporan = $laporan->get();
+
+                    if(!empty($laporan) && count($laporan)) {
+                        foreach($laporan as $ll) {
+                            if(is_int((int)$ll->isian)) {
+                                $kalkulasi_upsapc_runtime[$this->bulan[$i]] += (int)$ll->isian;
+                            } else {
+                                $kalkulasi_upsapc_runtime[$this->bulan[$i]] += 0;
+                            }
+                            
+                        }
+
+                        $kalkulasi_upsapc_runtime[$this->bulan[$i]] = ((int)$kalkulasi_upsapc_runtime[$this->bulan[$i]] / (int)count($laporan));
+                        $kalkulasi_upsapc_runtime[$this->bulan[$i]] = number_format((double)$kalkulasi_upsapc_runtime[$this->bulan[$i]], 2, '.', '');
+                    } else {
+                        $kalkulasi_upsapc_runtime[$this->bulan[$i]] = 0;
+                    }
+                }
+
+                $humiditybulan = $shift->map(function ($dataShift) use ($request, $i, $range){
+                    $datanya = [];
+
+                    $perangkat  = [];
+                    $perangkat  = FormIsian::orderBy('judul', 'asc');
+                    $perangkat = $perangkat->where('form_jenis', env('FORM_FACILITIES'));
+                    $perangkat = $perangkat->where('kategori', 'PAC');
+                    $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
+                    $perangkat = $perangkat->get();
+
+                    $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $i, $range, $dataShift){
+                        $kalkulasi = [];
+                        $laporan = [];
+                        $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
+
+                        if ($request->shift) {
+                            $sh = $request->shift;
+                            $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
+                                $q->where('kode', $sh);
+                            });
+                        }
+
+                        $laporan = $laporan->where('form_isian_id', $dataPerangkat->uuid);
+
+                        $laporan = $laporan->get()->groupBy(function($date) {
+                            return Carbon::parse($date->created_at)->format('d');
+                        });
+
+                        foreach($range as $day) {
+                            if(!empty($laporan) && count($laporan)) {
+                                foreach($laporan as $dd => $val) {
+                                    if((int)$dd == $day) {
+                                        $kalkulasi[(int)$dd] = 0;
+                                        foreach($val as $item) {
+                                            if(is_int((int)$item->isian)) {
+                                                $kalkulasi[(int)$dd] += (int)$item->isian;
+                                            } else {
+                                                $kalkulasi[(int)$dd] += 0;
+                                            }
+                                        }
+                                        $kalkulasi[(int)$day] = ((int)$kalkulasi[(int)$day]/(int)count($laporan));
+                                        $kalkulasi[(int)$day] = number_format((double)$kalkulasi[(int)$day], 2, '.', '');
+                                    } else {
+                                        $kalkulasi[(int)$day] = 0;
+                                    }
+                                }
+                            } else {
+                                $kalkulasi[(int)$day] = 0;
+                            }
+                        }
+
+                        $return['perangkat'] = $dataPerangkat->judul;
+                        $return['perhari'] = $kalkulasi;
+                        $return['hari'] = $range;
+
+                        return $return;
+                    });
+
+                    $datanya['shift'] = $dataShift;
+                    $datanya['kalkulasi'] = $dataLaporan; 
+
+                    return $datanya;
+                });
+
+                $humidityperbulan[$this->bulan[$i]] = $humiditybulan;
             }
 
             $data = [
@@ -207,13 +603,26 @@ class DashboardController extends Controller
                     ]
                 ],
                 'grafikbulanan' =>  [
-                    'system' => '',
-                    'loadampere' => '',
-                    'persenload' => '',
+                    'loadampere' => array(
+                        'ups1' => $kalkulasi_ups1_ampere,
+                        'ups2' => $kalkulasi_ups2_ampere,
+                        'ups-apc' => $kalkulasi_upsapc_ampere
+                    ),
+                    'system' => array(
+                        'ups1' => $kalkulasi_ups1_voltage,
+                        'ups2' => $kalkulasi_ups2_voltage,
+                        'ups-apc' => $kalkulasi_upsapc_voltage
+                    ),
+                    'persenload' => array(
+                        'ups1' => $kalkulasi_ups1_loadlevel,
+                        'ups2' => $kalkulasi_ups2_loadlevel,
+                        'ups-apc' => $kalkulasi_upsapc_runtime
+                    ),
                 ],
                 // 'chartlaporan' => $chartLaporan,
                 'shifthariini' => $shifthariini,
-                'humidity' => $humidity
+                'humidity' => $humidity,
+                'humidityperbulan' => $humidityperbulan
             ];
 
             return response()->json([
