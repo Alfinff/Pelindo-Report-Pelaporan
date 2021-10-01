@@ -226,7 +226,6 @@ class DashboardController extends Controller
             $upsapc_voltage  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_voltage)->get();
             $upsapc_runtime  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_runtime)->get();
 
-
             $humidityperbulan = [];
             for($i=1;$i<=12;$i++) {
                 $range = 0;
