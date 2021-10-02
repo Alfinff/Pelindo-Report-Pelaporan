@@ -48,7 +48,7 @@ $router->group(['prefix' => 'utils'], function() use ($router) {
 $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], function() use ($router) {
     // kirim laporan lewat mobile
     $router->group(['prefix' => 'laporan'], function() use ($router) {
-        $router->get('/details/{id}', 'LaporanController@detailLaporan');
+        $router->get('/details/{id}', 'LaporanMobileController@detailLaporan');
         $router->group(['prefix' => 'shift'], function() use ($router) {
             $router->post('/', 'LaporanMobileController@catatanShift');
             $router->put('/{id}', 'LaporanMobileController@updateCatatanShift');

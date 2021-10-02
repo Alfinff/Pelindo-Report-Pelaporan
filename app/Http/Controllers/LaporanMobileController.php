@@ -13,6 +13,7 @@ use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
 use App\Models\FormIsian;
+use App\Models\FormIsianKategori;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -423,6 +424,126 @@ class LaporanMobileController extends Controller
             ]);
         } catch (\Throwable $th) {
             DB::rollback();
+            return writeLog($th->getMessage());
+        }
+    }
+
+    public function detailLaporan($id)
+    {
+        try {
+
+            $decodeToken = parseJwt($this->request->header('Authorization'));
+            $uuid        = $decodeToken->user->uuid;
+            $user        = User::where('uuid', $uuid)->first();
+        
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            // ->where('form_jenis', 'LIKE', $this->request->form_jenis)
+            $laporan = Laporan::where('uuid', $id)->first();
+
+            if(!$laporan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data laporan tidak ditemukan',
+                    'code'    => 404
+                ]);
+            }
+        
+            $formKategoriIsian = FormIsianKategori::where('form_jenis', $this->request->form_jenis)->get();
+
+            if (!count($formKategoriIsian)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data jenis form tidak ditemukan',
+                    'code'    => 404
+                ]);
+            }
+
+            $laporanisi = LaporanIsi::where('laporan_id', $id)->with('isian')->get();
+
+            // return $laporanisi;
+
+            if(!count($laporanisi)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data laporan isi tidak ditemukan',
+                    'code'    => 404
+                ]);
+            }
+
+            $data = $formKategoriIsian->map(function ($dataKategori) use ($laporanisi) {
+                $data = [];
+                $form = FormIsian::with(['jenis_form', 'kategori_isian', 'pilihan'])->where('status', 1)->where('kategori', $dataKategori->kode)->where('form_jenis', $this->request->form_jenis)->orderBy('kategori', 'asc')->get();
+
+                $form = $form->map(function ($dataForm) use ($laporanisi) {
+                    $isian = [];
+                    $jawaban = [];
+                    $keterangan = [];
+                    $form = [];
+                    $form['uuid'] = $dataForm->uuid;
+                    $form['judul'] = $dataForm->judul;
+                    $form['status'] = $dataForm->status;
+                    $form['created_at'] = $dataForm->created_at;
+                    $form['updated_at'] = $dataForm->updated_at;
+                    $form['tipe'] = $dataForm->tipe;
+                    $form['kategori'] = '';
+                    if($dataForm->kategori_isian) {
+                        $form['kategori'] = str_replace('-', ' ', $dataForm->kategori_isian->kode) ?? '';
+                    }
+                    $form['jenis'] = '';
+                    if($dataForm->jenis_form) {
+                        $form['jenis'] = $dataForm->jenis_form->nama  ?? '';
+                    }
+                    $form['pilihan'] = [];
+                    if($dataForm->pilihan) {
+                        $pilihan = $dataForm->pilihan->map(function ($dataPilihan) {
+                            $pilihan = [];
+                            $pilihan['uuid'] = $dataPilihan->uuid ?? '';
+                            $pilihan['pilihan'] = $dataPilihan->pilihan ?? '';
+                            $pilihan['laporan_id'] = $dataPilihan->isian_id;
+
+                            return $pilihan;
+                        });
+
+                        $form['pilihan'] = $pilihan;
+                    }
+
+                    foreach($laporanisi as $item) {
+                        if($item->form_isian_id == $dataForm->uuid) {
+                            $jawaban = $item->pilihan;
+                            $keterangan = $item->keterangan;
+                            $isian = $item->isian;
+                        }
+                    }
+
+                    $form['jawaban'] = $jawaban;
+                    $form['isian'] = $isian;
+                    $form['keterangan'] = $keterangan;
+
+                    return $form;
+                });
+
+                $data['kategori'] = $dataKategori->kode;
+                $data['data'] = $form;
+                
+                return $data;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Form '.$this->request->form_jenis,
+                'code'    => 200,
+                'tipe'    => $this->request->form_jenis,
+                'data'    => $data,
+            ]);
+        
+        } catch (\Throwable $th) {
             return writeLog($th->getMessage());
         }
     }
