@@ -12,6 +12,7 @@ use App\Models\Laporan;
 use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
+use App\Models\LaporanRangeJam;
 use App\Models\FormIsian;
 use App\Models\FormJenis;
 use Illuminate\Support\Facades\DB;
@@ -117,26 +118,31 @@ class DashboardController extends Controller
 
             $shift = $shift->get();
 
+            $perangkat  = [];
+            $perangkat  = FormIsian::orderBy('judul', 'asc');
+            $perangkat = $perangkat->where('form_jenis', env('FORM_FACILITIES'));
+            $perangkat = $perangkat->where('kategori', 'PAC');
+            $perangkat = $perangkat->where('tipe', 'LIKE', '%DROPDOWN%');
+            $perangkat = $perangkat->get();
+
             $humidity = [];
-            $humidity = $shift->map(function ($dataShift) use ($request){
+            $humidity = $shift->map(function ($dataShift) use ($request, $perangkat){
                 $datanya = [];
 
-                $perangkat  = [];
-                $perangkat  = FormIsian::orderBy('judul', 'asc');
-                $perangkat = $perangkat->where('form_jenis', env('FORM_FACILITIES'));
-                $perangkat = $perangkat->where('kategori', 'PAC');
-                $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
-                $perangkat = $perangkat->get();
-
                 $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $dataShift){
-                    $kalkulasi = [];
                     $range = [];
-                    $rangejam = [];
-                    $range = create_time_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
-                    $rangejam = create_jam_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
-
                     $laporan = [];
-                    $laporan = LaporanIsi::orderBy('created_at', 'asc');
+                    $rangejam = [];
+                    $kalkulasi = [];
+
+                    // $range = create_time_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
+                    // $rangejam = create_jam_range($dataShift->mulai, $dataShift->selesai, '1 hour', '24');
+                    // ambil dari range jam
+                    $range = LaporanRangeJam::where('kode_shift', '!=', '');
+                    $rangejam = $range;
+
+                    $laporan = LaporanIsi::with('laporan');
+                    // orderBy('created_at', 'asc')
 
                     if ($request->date) {
                         $date = $request->date;
@@ -147,38 +153,51 @@ class DashboardController extends Controller
                         $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
                             $q->where('kode', $sh);
                         });
+
+                        $range = $range->where('kode_shift', $sh);
+                        $rangejam = $rangejam->where('kode_shift', $sh);
                     }
+
+                    $range = $range->get();
+                    $rangejam = $rangejam->get();
 
                     $laporan = $laporan->where('form_isian_id', $dataPerangkat->uuid);
 
-                    $laporan = $laporan->get()->groupBy(function($date) {
-                        return Carbon::parse($date->created_at)->format('H');
-                    });
-
+                    $laporan = $laporan->get();
+                    // ->groupBy(function($date) {
+                    //     return Carbon::parse($date->created_at)->format('H');
+                    // });
 
                     foreach($range as $time) {
                         if(!empty($laporan) && count($laporan)) {
-                            foreach($laporan as $jam => $val) {
-                                if((int)$jam == $time) {
-                                    foreach($val as $item) {
-                                        if(is_int((int)$item->isian)) {
-                                            $kalkulasi[(int)$jam] = (int)$item->isian;
-                                        } else {
-                                            $kalkulasi[(int)$jam] = 0;
-                                        }
+                            foreach($laporan as $val) {
+                                if($val->laporan) {
+                                    if($val->laporan->range_jam_kode == $time->kode) {
+                                        // foreach($val as $item) {
+                                            if(is_int((int)$val->isian)) {
+                                                $kalkulasi[$time->time] = (int)$val->isian;
+                                            } else {
+                                                $kalkulasi[$time->time] = 0;
+                                            }
+                                        // }
+                                    } else {
+                                        $kalkulasi[$time->time] = 0;
                                     }
-                                } else {
-                                    $kalkulasi[(int)$time] = 0;
                                 }
                             }
                         } else {
-                            $kalkulasi[(int)$time] = 0;
+                            $kalkulasi[$time->time] = 0;
                         }
+                    }
+
+                    $datarangejam = [];
+                    foreach($rangejam as $rj) {
+                        array_push($datarangejam, 'Jam '.date('H', strtotime($rj->time)));
                     }
 
                     $return['perangkat'] = $dataPerangkat->judul;
                     $return['perjam'] = $kalkulasi;
-                    $return['jam'] = $rangejam;
+                    $return['jam'] = $datarangejam;
 
                     return $return;
                 });
@@ -188,7 +207,6 @@ class DashboardController extends Controller
 
                 return $datanya;
             });
-
             
             $whereUPS = array(
                 'form_jenis' => env('FORM_FACILITIES'),
@@ -519,15 +537,8 @@ class DashboardController extends Controller
                     }
                 }
 
-                $humiditybulan = $shift->map(function ($dataShift) use ($request, $i, $range){
+                $humiditybulan = $shift->map(function ($dataShift) use ($request, $i, $range, $perangkat){
                     $datanya = [];
-
-                    $perangkat  = [];
-                    $perangkat  = FormIsian::orderBy('judul', 'asc');
-                    $perangkat = $perangkat->where('form_jenis', env('FORM_FACILITIES'));
-                    $perangkat = $perangkat->where('kategori', 'PAC');
-                    $perangkat = $perangkat->where('tipe', 'LIKE', '%ISIAN%');
-                    $perangkat = $perangkat->get();
 
                     $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $i, $range, $dataShift){
                         $kalkulasi = [];
