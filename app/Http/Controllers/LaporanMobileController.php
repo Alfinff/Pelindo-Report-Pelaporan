@@ -12,6 +12,7 @@ use App\Models\Laporan;
 use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
+use App\Models\LaporanRangeJam;
 use App\Models\FormIsian;
 use App\Models\FormIsianKategori;
 use Illuminate\Support\Facades\DB;
@@ -272,6 +273,7 @@ class LaporanMobileController extends Controller
             // 'laporan.*.pilihan_id' => 'required',
             // 'laporan.*.isian' => 'required',
             // 'laporan.*.keterangan' => 'required',
+            'range_jam_kode' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -310,14 +312,32 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
+            // cek kode laporan range jam 
+            $cekkoderangejam = LaporanRangeJam::where('kode', $this->request->range_jam_kode)->first();
+            if (!$cekkoderangejam) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kode range jam tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
             // cek laporan sedang dikerjakan atau tidak
             $jam_sekarang = date('Y-m-d H').':00:00';
             $jam_sekarang_plus1 = date('Y-m-d H', strtotime('+1 hour')).':00:00';
-            $where = array('form_jenis' => $this->request->form_jenis);
+            // $where = array('form_jenis' => $this->request->form_jenis);$this->request->range_jam_kode);
+
+            // where ganti pakai kode range jam
+            $where = array(
+                'form_jenis' => $this->request->form_jenis, 
+                'created_at' => date('Y-m-d'), 
+                'range_jam_kode' => $this->request->range_jam_kode
+            );
+
             // 'jadwal_shift_id' => $this->request->jadwal_shift_id, 
 
             $cek = LaporanDikerjakan::where($where);
-            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
             $cek = $cek->first();
             if($cek) {
                 if($cek->user_id != $uuid) {
@@ -337,7 +357,7 @@ class LaporanMobileController extends Controller
 
             // cek laporan sudah dikerjakan / belum
             $cek = Laporan::where($where);
-            $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
+            // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
             $cek = $cek->first();
             if($cek) {
                 return response()->json([
@@ -351,6 +371,7 @@ class LaporanMobileController extends Controller
             $laporan->uuid = generateUuid();
             $laporan->jadwal_shift_id = $this->request->jadwal_shift_id;
             $laporan->form_jenis = $this->request->form_jenis;
+            $laporan->range_jam_kode = $this->request->range_jam_kode;
             $laporan->user_id = $uuid;
 
             // cek pada jam ini termasuk range jam shift user yang mengirim atau tidak
@@ -377,7 +398,7 @@ class LaporanMobileController extends Controller
 
                     // cek laporan pada jam tersebut sudah di kerjakan / belum
                     $cek = Laporan::where($where);
-                    $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan)), date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan_plus1))]);
+                    // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan)), date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan_plus1))]);
                     $cek = $cek->first();
                     if($cek) {
                         return response()->json([
