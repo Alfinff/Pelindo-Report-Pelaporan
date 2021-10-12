@@ -19,7 +19,9 @@ class LaporanDikerjakan extends Model
         'jadwal_shift_id',
         'form_jenis',
         'user_id',
-        'created_at'
+        'created_at',
+        'updated_at',
+        'range_jam_kode',
     ];
 
     protected $connection = 'pelindo_repport';

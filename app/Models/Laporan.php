@@ -18,7 +18,8 @@ class Laporan extends Model
         'uuid',
         'jadwal_shift_id',
         'form_jenis',
-        'user_id'
+        'user_id',
+        'range_jam_kode',
     ];
 
     protected $connection = 'pelindo_repport';

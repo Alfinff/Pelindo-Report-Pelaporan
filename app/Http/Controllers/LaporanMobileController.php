@@ -329,14 +329,13 @@ class LaporanMobileController extends Controller
 
             // where ganti pakai kode range jam
             $where = array(
-                'form_jenis' => $this->request->form_jenis, 
-                'created_at' => date('Y-m-d'), 
+                'form_jenis' => $this->request->form_jenis,
                 'range_jam_kode' => $this->request->range_jam_kode
             );
 
             // 'jadwal_shift_id' => $this->request->jadwal_shift_id, 
 
-            $cek = LaporanDikerjakan::where($where);
+            $cek = LaporanDikerjakan::where($where)->whereDate('created_at', date('Y-m-d'));
             // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
             $cek = $cek->first();
             if($cek) {
@@ -356,7 +355,7 @@ class LaporanMobileController extends Controller
             }
 
             // cek laporan sudah dikerjakan / belum
-            $cek = Laporan::where($where);
+            $cek = Laporan::where($where)->whereDate('created_at', date('Y-m-d'));
             // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_sekarang)), date('Y-m-d H:i:s', strtotime($jam_sekarang_plus1))]);
             $cek = $cek->first();
             if($cek) {
@@ -390,14 +389,14 @@ class LaporanMobileController extends Controller
                 
             } else {
                 // ambil created at dari laporan ketika dikerjakan
-                $cekDikerjakan = LaporanDikerjakan::where($where)->where('user_id', $uuid)->first();
+                $cekDikerjakan = LaporanDikerjakan::where($where)->whereDate('created_at', date('Y-m-d'))->where('user_id', $uuid)->first();
                 if($cekDikerjakan) {
                     $jam_laporanDikerjakan = date('Y-m-d H', strtotime($cekDikerjakan->created_at)).':00:00';
                     $plus1 = strtotime('+1 hour', strtotime($jam_laporanDikerjakan));
                     $jam_laporanDikerjakan_plus1 = date('Y-m-d H', $plus1).':00:00';
 
                     // cek laporan pada jam tersebut sudah di kerjakan / belum
-                    $cek = Laporan::where($where);
+                    $cek = Laporan::where($where)->whereDate('created_at', date('Y-m-d'));
                     // $cek = $cek->whereBetween('created_at', [date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan)), date('Y-m-d H:i:s', strtotime($jam_laporanDikerjakan_plus1))]);
                     $cek = $cek->first();
                     if($cek) {
