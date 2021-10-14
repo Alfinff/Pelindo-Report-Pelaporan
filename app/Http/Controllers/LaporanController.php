@@ -12,6 +12,7 @@ use App\Models\Shift;
 use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
+use App\Models\LaporanRangeJam;
 use App\Models\FormIsian;
 use App\Models\FormJenis;
 use Illuminate\Support\Facades\DB;
@@ -100,9 +101,16 @@ class LaporanController extends Controller
                         });
 
                         $rangejam = $isi->map(function ($isi) {
-                            $jamawal = Carbon::parse($isi->created_at)->format('H:00');
-                            $plus1jam = Carbon::parse($jamawal)->addHour(1);
-                            $jamakhir = $plus1jam->format('H:00');
+                            $jamawal = 0;
+                            $jamakhir = 0;
+                            $kode = $isi->laporan->range_jam_kode;
+                            $time = LaporanRangeJam::where('kode', $kode)->first();
+                            if($time) {
+                                $jamawal = Carbon::parse($time->time)->format('H:00');
+                                $plus1jam = Carbon::parse($jamawal)->addHour(1);
+                                $jamakhir = $plus1jam->format('H:00');
+                            }
+                            
                             return $jamawal.'-'.$jamakhir;
                         });
 
@@ -220,9 +228,16 @@ class LaporanController extends Controller
                         });
 
                         $rangejam = $isi->map(function ($isi) {
-                            $jamawal = Carbon::parse($isi->created_at)->format('H:00');
-                            $plus1jam = Carbon::parse($jamawal)->addHour(1);
-                            $jamakhir = $plus1jam->format('H:00');
+                            $jamawal = 0;
+                            $jamakhir = 0;
+                            $kode = $isi->laporan->range_jam_kode;
+                            $time = LaporanRangeJam::where('kode', $kode)->first();
+                            if($time) {
+                                $jamawal = Carbon::parse($time->time)->format('H:00');
+                                $plus1jam = Carbon::parse($jamawal)->addHour(1);
+                                $jamakhir = $plus1jam->format('H:00');
+                            }
+                            
                             return $jamawal.'-'.$jamakhir;
                         });
 
@@ -340,9 +355,16 @@ class LaporanController extends Controller
                         });
 
                         $rangejam = $isi->map(function ($isi) {
-                            $jamawal = Carbon::parse($isi->created_at)->format('H:00');
-                            $plus1jam = Carbon::parse($jamawal)->addHour(1);
-                            $jamakhir = $plus1jam->format('H:00');
+                            $jamawal = 0;
+                            $jamakhir = 0;
+                            $kode = $isi->laporan->range_jam_kode;
+                            $time = LaporanRangeJam::where('kode', $kode)->first();
+                            if($time) {
+                                $jamawal = Carbon::parse($time->time)->format('H:00');
+                                $plus1jam = Carbon::parse($jamawal)->addHour(1);
+                                $jamakhir = $plus1jam->format('H:00');
+                            }
+                            
                             return $jamawal.'-'.$jamakhir;
                         });
 

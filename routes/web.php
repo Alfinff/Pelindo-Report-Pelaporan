@@ -16,8 +16,8 @@
 $router->get('/', function () use ($router) {
     echo 'API Pelindo Report - Pelaporan';
 });
-
-$router->group(['prefix' => 'dashboard', 'middleware' => ['jwt.auth', 'role.super']], function() use ($router) {
+// , 'middleware' => ['jwt.auth', 'role.super']
+$router->group(['prefix' => 'dashboard'], function() use ($router) {
     $router->get('/', 'DashboardController@getDashboard');
 });
 

@@ -186,3 +186,8 @@ function getrangedaymonth($month, $year)
 
 	return $range;
 }
+
+function getnameofday($date)
+{
+	return date('l', strtotime($date));
+}
