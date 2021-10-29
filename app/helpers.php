@@ -75,7 +75,7 @@ function generateJwt(User $user)
 	    $payload = [
 			'iss'  => 'lumen-jwt',
 			'iat'  => time(),
-			'exp'  => time() + 60 * 60,
+			'exp'  => time() + 60 * 60 * 24,
 			'key'  => $key,
 			'user' => $dataUser,
 	    ];
@@ -90,104 +90,144 @@ function generateJwt(User $user)
 
 	    return JWT::encode($payload, env('JWT_SECRET'));
 	} catch (Exception $e) {
-		return response()->json(array('msg' => $e->getMessage(), 'success' => false));
+		return writeLog($e->getMessage());
 	}
 }
 
 function parseJwt($token)
 {
-	return JWT::decode($token, env('JWT_SECRET'), array('HS256'));
+	try {
+		return JWT::decode($token, env('JWT_SECRET'), array('HS256'));
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function uploadFileS3($base64, $path)
 {
-	$file = base64_decode($base64);
-	Flysystem::connection('awss3')->put($path, $file);
+	try {
+		$file = base64_decode($base64);
+		Flysystem::connection('awss3')->put($path, $file);
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function generateOtp()
 {
-	return substr(str_shuffle('1234567890'), 0, 6);
+	try {
+		return substr(str_shuffle('1234567890'), 0, 6);
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function formatTanggal($tanggal)
 {
-	return date('Y-m-d H:i:s', strtotime($tanggal));
+	try {
+		return date('Y-m-d H:i:s', strtotime($tanggal));
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function sendFcm($to, $notification, $data)
 {
-	$response = Http::withHeaders([
-		'Authorization' => 'key=' . env('KEY_FCM'),
-		'Content-Type'  => 'application/json',
-	])->post(env('URL_FCM'), [
-		'to'           => $to,
-		'notification' => $notification,
-		'data'         => $data,
-	]);
+	try {
+		$response = Http::withHeaders([
+			'Authorization' => 'key=' . env('KEY_FCM'),
+			'Content-Type'  => 'application/json',
+		])->post(env('URL_FCM'), [
+			'to'           => $to,
+			'notification' => $notification,
+			'data'         => $data,
+		]);
 
-	return $response;
+		return $response;
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function generateRandomString($length = 6) {
-	return substr(str_shuffle(str_repeat($x = '1234567890', ceil($length / strlen($x)))), 1, $length);
+	try {
+		return substr(str_shuffle(str_repeat($x = '1234567890', ceil($length / strlen($x)))), 1, $length);
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function create_time_range($start, $end, $interval = '30 mins', $format = '12') {
-    $startTime = strtotime($start); 
-    $endTime   = strtotime($end);
-    $returnTimeFormat = ($format == '12')?'g A':'G';
+	try {
+		$startTime = strtotime($start); 
+		$endTime   = strtotime($end);
+		$returnTimeFormat = ($format == '12')?'g A':'G';
 
-    $current   = time(); 
-    $addTime   = strtotime('+'.$interval, $current); 
-    $diff      = $addTime - $current;
+		$current   = time(); 
+		$addTime   = strtotime('+'.$interval, $current); 
+		$diff      = $addTime - $current;
 
-    $times = array(); 
-    while ($startTime < $endTime) { 
-        $times[] = date($returnTimeFormat, $startTime); 
-        $startTime += $diff; 
-    } 
-    $times[] = date($returnTimeFormat, $startTime); 
-    return $times; 
+		$times = array(); 
+		while ($startTime < $endTime) { 
+			$times[] = date($returnTimeFormat, $startTime); 
+			$startTime += $diff; 
+		} 
+		$times[] = date($returnTimeFormat, $startTime); 
+		return $times; 
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }
 
 function create_jam_range($start, $end, $interval = '30 mins', $format = '12') {
-    $startTime = strtotime($start); 
-    $endTime   = strtotime($end);
-    $returnTimeFormat = ($format == '12')?'g A':'G';
+	try {
+		$startTime = strtotime($start); 
+		$endTime   = strtotime($end);
+		$returnTimeFormat = ($format == '12')?'g A':'G';
 
-    $current   = time(); 
-    $addTime   = strtotime('+'.$interval, $current); 
-    $diff      = $addTime - $current;
+		$current   = time(); 
+		$addTime   = strtotime('+'.$interval, $current); 
+		$diff      = $addTime - $current;
 
-    $times = array(); 
-    while ($startTime < $endTime) { 
-        $times[] = 'Jam '.date($returnTimeFormat, $startTime); 
-        $startTime += $diff; 
-    } 
-	if(date($returnTimeFormat, $startTime) == '0') {
-		$times[] = 'Jam 00';
-	} else {
-		$times[] = 'Jam '.date($returnTimeFormat, $startTime);
+		$times = array(); 
+		while ($startTime < $endTime) { 
+			$times[] = 'Jam '.date($returnTimeFormat, $startTime); 
+			$startTime += $diff; 
+		} 
+		if(date($returnTimeFormat, $startTime) == '0') {
+			$times[] = 'Jam 00';
+		} else {
+			$times[] = 'Jam '.date($returnTimeFormat, $startTime);
+		}
+		return $times; 
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
 	}
-    return $times; 
 }
 
 function getrangedaymonth($month, $year)
 {
-	$range = [];
+	try {
+		$range = [];
 
-	// jumlah hari bulan ini
-	$dayrange=cal_days_in_month(CAL_GREGORIAN,$month,$year);
-	
-	for($i = 1; $i <= ((int)$dayrange); $i++) {
-		array_push($range, $i);
+		// jumlah hari bulan ini
+		$dayrange=cal_days_in_month(CAL_GREGORIAN,$month,$year);
+		
+		for($i = 1; $i <= ((int)$dayrange); $i++) {
+			array_push($range, $i);
+		}
+
+		return $range;
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
 	}
-
-	return $range;
 }
 
 function getnameofday($date)
 {
-	return date('l', strtotime($date));
+	try {
+		return date('l', strtotime($date));
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
 }

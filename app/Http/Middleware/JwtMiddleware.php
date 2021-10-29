@@ -22,12 +22,12 @@ class JwtMiddleware
                 $decode = parseJwt($request->header('Authorization'));
 
                 $user = User::find($decode->user->id);
-                
+
                 if ($decode->key == $user->key) {
                     return $next($request);
                 }
             }
-            // dd(parseJwt($request->header('Authorization')));
+
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorize',
@@ -35,12 +35,6 @@ class JwtMiddleware
             ]);
         } catch (\Throwable $th) {
             return writeLog($th->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorize',
-                'code'    => 401,
-            ]);
         }
     }
 }
