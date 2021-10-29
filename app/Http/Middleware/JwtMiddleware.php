@@ -27,19 +27,19 @@ class JwtMiddleware
                     return $next($request);
                 }
             }
-
+            // dd(parseJwt($request->header('Authorization')));
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorize',
                 'code'    => 401,
             ]);
         } catch (\Throwable $th) {
-            writeLog($th->getMessage());
+            return writeLog($th->getMessage());
 
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorize',
-                'code'    => 500,
+                'code'    => 401,
             ]);
         }
     }
