@@ -23,8 +23,10 @@ class JwtMiddleware
 
                 $user = User::find($decode->user->id);
 
-                if ($decode->key == $user->key) {
-                    return $next($request);
+                if($user) {
+                    if ($decode->key == $user->key) {
+                        return $next($request);
+                    }
                 }
             }
 
@@ -34,7 +36,7 @@ class JwtMiddleware
                 'code'    => 401,
             ]);
         } catch (\Throwable $th) {
-            return writeLog($th->getMessage());
+            return writeLog($decode->original->message ?? 'Expired Token.');
         }
     }
 }

@@ -16,6 +16,22 @@
 $router->get('/', function () use ($router) {
     echo 'API Pelindo Report - Pelaporan';
 });
+
+$router->get('/tesdb', function () use ($router) {
+    // Test database connection
+    try {
+        // DB::connection()->getPdo();
+        if(DB::connection()->getDatabaseName())
+        {
+            echo "conncted sucessfully to database ".DB::connection()->getDatabaseName();
+        } else {
+            echo 'no';
+        }
+    } catch (\Exception $e) {
+        die("Could not connect to the database.  Please check your configuration. error:" . $e );
+    }
+});
+
 // , 'middleware' => ['jwt.auth', 'role.super']
 $router->group(['prefix' => 'dashboard'], function() use ($router) {
     $router->get('/', 'DashboardController@getDashboard');
