@@ -506,11 +506,11 @@ class LaporanMobileController extends Controller
                     $jawaban = [];
                     $keterangan = [];
                     $form = [];
-                    $form['uuid'] = $dataForm->uuid;
-                    $form['judul'] = $dataForm->judul;
-                    $form['status'] = $dataForm->status;
-                    $form['created_at'] = $dataForm->created_at;
-                    $form['updated_at'] = $dataForm->updated_at;
+                    $form['uuid'] = $dataForm->uuid ?? '';
+                    $form['judul'] = $dataForm->judul ?? '';
+                    $form['status'] = $dataForm->status ?? '';
+                    $form['created_at'] = $dataForm->created_at ?? '';
+                    $form['updated_at'] = $dataForm->updated_at ?? '';
                     $form['tipe'] = $dataForm->tipe;
                     $form['kategori'] = '';
                     if($dataForm->kategori_isian) {
@@ -526,7 +526,7 @@ class LaporanMobileController extends Controller
                             $pilihan = [];
                             $pilihan['uuid'] = $dataPilihan->uuid ?? '';
                             $pilihan['pilihan'] = $dataPilihan->pilihan ?? '';
-                            $pilihan['laporan_id'] = $dataPilihan->isian_id;
+                            $pilihan['laporan_id'] = $dataPilihan->isian_id ?? '';
 
                             return $pilihan;
                         });
@@ -534,11 +534,19 @@ class LaporanMobileController extends Controller
                         $form['pilihan'] = $pilihan;
                     }
 
+                    $jawaban = [];
+                    $jawaban['uuid'] = '';
+                    $jawaban['pilihan'] = '';
+                    $jawaban['isian_id'] = '';
+                    $jawaban['created_at'] = '';
+                    $jawaban['updated_at'] = '';
                     foreach($laporanisi as $item) {
                         if($item->form_isian_id == $dataForm->uuid) {
-                            $jawaban = $item->pilihan;
-                            $keterangan = $item->keterangan;
-                            $isian = $item->isian;
+                            if($item->pilihan) {
+                                $jawaban = $item->pilihan;
+                            }
+                            $keterangan = $item->keterangan ?? '';
+                            $isian = $item->isian ?? '';
                         }
                     }
 
