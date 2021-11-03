@@ -293,18 +293,34 @@ class LaporanMobileController extends Controller
                 ]);
             }
 
+            $minus_oneday = strtotime('-1 day', strtotime(date('Y-m-d')));
+            
             // cek jadwal ada / tidak
+            $cekJadwal = '';
             $cekJadwal = Jadwal::where('uuid', $this->request->jadwal_shift_id)->where('user_id', $uuid)->first();
             if (!$cekJadwal) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Jadwal tidak ditemukan',
-                    'code'    => 404,
-                ]);
-            }
-
-            // cek hari ini libur atau tidak
-            if($cekJadwal->kode_shift == 'L') {
+                $cekJadwal = '';
+                $cekJadwal = Jadwal::where('user_id', $uuid)->whereDate('tanggal', date('Y-m-d', $minus_oneday))->first();
+                if (!$cekJadwal) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jadwal tidak ditemukan',
+                        'code'    => 404,
+                    ]);
+                } else {
+                    // cek kalau jadwal sebelumnya shift malam
+                    if(isset($cekJadwal->shift->kode)) {
+                        if($cekJadwal->shift->kode != 'M') {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Jadwal tidak ditemukan',
+                                'code'    => 404,
+                            ]);
+                        }
+                    }
+                }
+            } else if($cekJadwal->kode_shift == 'L') {
+                // cek hari ini libur atau tidak
                 return response()->json([
                     'success' => false,
                     'message' => 'Jadwal libur pada hari ini',
@@ -377,6 +393,10 @@ class LaporanMobileController extends Controller
             $getShift = Shift::where('kode', $cekJadwal->kode_shift)->first();
             $jammulai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->mulai)));
             if($cekJadwal->kode_shift == 'M') {
+                $jammulai = '';
+                // $jammulai = date('Y-m-d', $minus_oneday);
+                $tes = strtotime(date('Y-m-d', $minus_oneday).date('H:i:s', strtotime($getShift->mulai)));
+                $jammulai = strtotime(date('Y-m-d H:i:s', $tes));
                 $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
                 $jamselesai = strtotime(date('Y-m-d H:i:s', strtotime("+1 day", $jamselesai)));
             } else {
