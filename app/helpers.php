@@ -156,7 +156,7 @@ function validasiJadwal($jadwalshiftid, $userid)
 				$cekJadwalHariIni = '';
 				$cekJadwalHariIni = Jadwal::with('user', 'shift')->where('user_id', $userid)->whereDate('tanggal', date('Y-m-d'))->first();
 				if(isset($cekJadwalHariIni->kode_shift)) {
-					if($cekJadwal->kode_shift != 'L') {
+					if($cekJadwal->kode_shift == 'L') {
 						return array('errcode' => 2, 'data'  => '');
 					}
 				}
