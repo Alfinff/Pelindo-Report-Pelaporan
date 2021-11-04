@@ -4,10 +4,14 @@
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Ramsey\Uuid\Uuid;
-use App\Models\User;
+
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+
+use App\Models\User;
+use App\Models\Jadwal;
+use App\Models\Shift;
 
 function writeLog($message)
 {
@@ -104,6 +108,109 @@ function parseJwt($token)
 {
 	try {
 		return JWT::decode($token, env('JWT_SECRET'), array('HS256'));
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
+}
+
+function validasiJadwal($jadwalshiftid, $userid)
+{
+	try {
+		$minus_oneday = strtotime('-1 day', strtotime(date('Y-m-d')));
+				
+		// cek id jadwal terdaftar / tidak
+		$cekJadwal = '';
+		$cekJadwal = Jadwal::where('uuid', $jadwalshiftid)->where('user_id', $userid)->first();
+		if (!$cekJadwal) {
+			return array('errcode' => 1, 'data'  => '');
+		}
+
+		// cek jadwal hari ini
+		$cekJadwal = '';
+		$cekJadwal = Jadwal::where('uuid', $jadwalshiftid)->where('user_id', $userid)->whereDate('tanggal', date('Y-m-d'))->first();
+		if(!$cekJadwal) {
+			// cek jadwal hari sebelumnya
+			$cekJadwal = Jadwal::where('user_id', $userid)->whereDate('tanggal', date('Y-m-d', $minus_oneday))->first();
+			if (!$cekJadwal) {
+				return array('errcode' => 1, 'data'  => '');
+			} else {
+				// cek kalau jadwal sebelumnya shift malam
+				if(isset($cekJadwal->kode_shift)) {
+					if($cekJadwal->kode_shift != 'M') 
+					{
+						return array('errcode' => 1, 'data'  => '');
+					}
+				}
+			}
+		} 
+		
+		// cek jadwal libur atau tidak
+		if ($cekJadwal->kode_shift == 'L') {
+			return array('errcode' => 2, 'data'  => '');
+		}
+
+		// cek ketika jadwal sebelumnya malam
+		if($cekJadwal->kode_shift == 'M') {
+			if(date('H') >= 12) {
+				// cek hari ini libur atau tidak
+				$cekJadwalHariIni = '';
+				$cekJadwalHariIni = Jadwal::with('user', 'shift')->where('user_id', $userid)->whereDate('tanggal', date('Y-m-d'))->first();
+				if(isset($cekJadwalHariIni->kode_shift)) {
+					if($cekJadwal->kode_shift != 'L') {
+						return array('errcode' => 2, 'data'  => '');
+					}
+				}
+			}
+		}
+		
+		return array('errcode' => 0, 'data'  => $cekJadwal);
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
+}
+
+function validasiJamShift($kode_shift)
+{
+	try {
+		$jammulai = '';
+		$jamselesai = '';
+		$jamsekarang = '';
+		$jamsekarang = strtotime(date('Y-m-d H:i:s'));
+		$minus_oneday = strtotime('-1 day', strtotime(date('Y-m-d')));
+
+		$getShift = Shift::where('kode', $kode_shift)->first();
+		
+		if(!$getShift) {
+			return array(
+				'errcode' => 1,
+				'jammulai' => $jammulai,
+				'jamselesai' => $jamselesai,
+				'jamsekarang' => $jamsekarang,
+				'data' => $getShift
+			);
+		} else {
+			$jammulai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->mulai)));
+			if($kode_shift == 'M') {
+				$jammulai = '';
+				// $jammulai = date('Y-m-d', $minus_oneday);
+				$tes = strtotime(date('Y-m-d', $minus_oneday).date('H:i:s', strtotime($getShift->mulai)));
+				$jammulai = strtotime(date('Y-m-d H:i:s', $tes));
+				$jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
+				if(date('H') > 23) {
+					$jamselesai = strtotime(date('Y-m-d H:i:s', strtotime("+1 day", $jamselesai)));
+				}
+			} else {
+				$jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));   
+			}
+		}
+
+		return array(
+			'errcode' => 0,
+			'jammulai' => $jammulai,
+			'jamselesai' => $jamselesai,
+			'jamsekarang' => $jamsekarang,
+			'data' => $getShift
+		);
 	} catch (Exception $e) {
 		return writeLog($e->getMessage());
 	}
