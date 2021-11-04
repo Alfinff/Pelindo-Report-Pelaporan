@@ -151,7 +151,7 @@ function validasiJadwal($jadwalshiftid, $userid)
 
 		// cek ketika jadwal sebelumnya malam
 		if($cekJadwal->kode_shift == 'M') {
-			if(date('H') >= 12) {
+			if(date('H') >= 8) {
 				// cek hari ini libur atau tidak
 				$cekJadwalHariIni = '';
 				$cekJadwalHariIni = Jadwal::with('user', 'shift')->where('user_id', $userid)->whereDate('tanggal', date('Y-m-d'))->first();
