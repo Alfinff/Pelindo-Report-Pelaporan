@@ -196,7 +196,7 @@ function validasiJamShift($kode_shift)
 				$tes = strtotime(date('Y-m-d', $minus_oneday).date('H:i:s', strtotime($getShift->mulai)));
 				$jammulai = strtotime(date('Y-m-d H:i:s', $tes));
 				$jamselesai = strtotime(date('Y-m-d H:i:s', strtotime($getShift->selesai)));
-				if(date('H') > 23) {
+				if(date('H') >= 23) {
 					$jamselesai = strtotime(date('Y-m-d H:i:s', strtotime("+1 day", $jamselesai)));
 				}
 			} else {
