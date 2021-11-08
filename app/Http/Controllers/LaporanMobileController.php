@@ -159,6 +159,7 @@ class LaporanMobileController extends Controller
 
     public function updateCatatanShift(Request $request, $id)
     {
+        // cek validasi input
         $validator = Validator::make($this->request->all(), [
             'judul' => 'required',
             'isi' => 'required'
@@ -241,6 +242,7 @@ class LaporanMobileController extends Controller
             $jamselesai = '';
             $jamsekarang = '';
             $dataShift = '';
+            $minusoneday = date('Y-m-d', strtotime('-1 day', strtotime(date('Y-m-d'))));
 
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
@@ -289,7 +291,7 @@ class LaporanMobileController extends Controller
             $jamselesaiplus3 = strtotime('+3 hour', strtotime($js));
             $from = date('Y-m-d H:i:s', $jammulai);
             $to = date('Y-m-d H:i:s', $jamselesaiplus3);
-
+            
             // cek sudah masuk waktu pengiriman laporan shift / belum
             if(($jammulai <= $jamsekarang) && ($jamselesaiplus3 >= $jamsekarang)) {
                 $cek = LaporanShift::where('user_id', $uuid)->where('jadwal_shift_id', $this->request->jadwal_shift_id)->whereBetween('created_at', [$from, $to])->first();
@@ -310,13 +312,20 @@ class LaporanMobileController extends Controller
                     ]);
                 }
 
-                if (($jammulai <= $jamsekarang) && ($jamselesaiplus3 <= $jamsekarang)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Batas waktu pengiriman laporan shift sudah berakhir',
-                        'code'    => 404
-                    ]);
-                }
+                // if (($jammulai <= $jamsekarang) && ($jamselesaiplus3 <= $jamsekarang)) {
+                //     return response()->json([
+                //         'success' => false,
+                //         'message' => 'Batas waktu pengiriman laporan shift sudah berakhir',
+                //         'code'    => 404
+                //     ]);
+                // }
+            }
+
+            $created_at = '';
+            if($cekJadwal->kode_shift == 'M') {
+                $created_at = $minusoneday. ' '.date('H:i:s');
+            } else {
+                $created_at = date('Y-m-d H:i:s');
             }
             
             // input laporan shift
@@ -325,7 +334,8 @@ class LaporanMobileController extends Controller
                 'judul' => $this->request->judul,
                 'isi' => $this->request->isi,
                 'jadwal_shift_id' => $this->request->jadwal_shift_id,
-                'user_id' => $uuid
+                'user_id' => $uuid,
+                'created_at' => $created_at
             ]);
             
             // create informasi notif
@@ -426,6 +436,7 @@ class LaporanMobileController extends Controller
             $jamselesai = '';
             $jamsekarang = '';
             $dataShift = '';
+            $minusoneday = date('Y-m-d', strtotime('-1 day', strtotime(date('Y-m-d'))));
 
             $decodeToken = parseJwt($this->request->header('Authorization'));
             $uuid        = $decodeToken->user->uuid;
@@ -472,7 +483,14 @@ class LaporanMobileController extends Controller
                 'range_jam_kode' => $this->request->range_jam_kode
             );
 
-            $cek = LaporanDikerjakan::where($where)->whereDate('created_at', date('Y-m-d'))->first();
+            $created_at = '';
+            if($cekJadwal->kode_shift == 'M') {
+                $created_at = $minusoneday. ' '.date('H:i:s');
+            } else {
+                $created_at = date('Y-m-d H:i:s');
+            }
+
+            $cek = LaporanDikerjakan::where($where)->whereDate('created_at', date('Y-m-d', strtotime($created_at)))->first();
             if($cek) {
                 if($cek->user_id != $uuid) {
                     $pengerja = User::where('uuid', $cek->user_id)->first();
@@ -490,7 +508,7 @@ class LaporanMobileController extends Controller
             }
 
             // cek laporan sudah dikerjakan / belum
-            $cek = Laporan::where($where)->whereDate('created_at', date('Y-m-d'))->first();
+            $cek = Laporan::where($where)->whereDate('created_at', date('Y-m-d', strtotime($created_at)))->first();
             if($cek) {
                 return response()->json([
                     'success' => false,
@@ -520,15 +538,19 @@ class LaporanMobileController extends Controller
             $jamsekarang = $dataShift['jamsekarang'] ?? '';
             $getShift = $dataShift['data'] ?? '';
 
+            if($cekJadwal->kode_shift == 'M') {
+                $laporan->created_at = $minusoneday. ' '.date('H:i:s');
+            }
+
             // jika jam shift sudah terlewat maka ambil created ad dari laporan di kerjakan
             if(($jammulai <= $jamsekarang) && ($jamselesai >= $jamsekarang)) {
                 
             } else {
                 // ambil created at dari laporan ketika dikerjakan
-                $cekDikerjakan = LaporanDikerjakan::where($where)->whereDate('created_at', date('Y-m-d'))->where('user_id', $uuid)->first();
+                $cekDikerjakan = LaporanDikerjakan::where($where)->whereDate('created_at', date('Y-m-d', strtotime($created_at)))->where('user_id', $uuid)->first();
                 if($cekDikerjakan) {
                     // cek laporan pada jam tersebut sudah di kerjakan / belum
-                    $cek = Laporan::where($where)->whereDate('created_at', date('Y-m-d'))->first();
+                    $cek = Laporan::where($where)->whereDate('created_at', date('Y-m-d', strtotime($created_at)))->first();
                     if($cek) {
                         return response()->json([
                             'success' => false,
@@ -536,8 +558,16 @@ class LaporanMobileController extends Controller
                             'code'    => 404,
                         ]);
                     }
-
-                    $laporan->created_at = $cekDikerjakan->created_at;
+                    
+                    if($cekJadwal->kode_shift == 'M') {
+                        $laporan->created_at = $minusoneday. ' '.date('H:i:s', strtotime($cekDikerjakan->created_at));
+                    } else {
+                        $laporan->created_at = $cekDikerjakan->created_at;
+                    }
+                } else {
+                    if($cekJadwal->kode_shift == 'M') {
+                        $laporan->created_at = $minusoneday. ' '.date('H:i:s');
+                    }
                 }
             }
 
