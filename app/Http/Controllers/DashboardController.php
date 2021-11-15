@@ -108,7 +108,7 @@ class DashboardController extends Controller
             // }
 
             $shifthariini = [];
-            $shifthariini = Jadwal::with('user', 'shift')->whereNotIn('kode_shift', ['L'])->whereDate('tanggal', date('Y-m-d'))->get();
+            $shifthariini = Jadwal::with('user', 'shift')->whereNotIn('kode_shift', ['L'])->whereDate('tanggal', date('Y-m-d'))->whereHas('user')->get();
 
             $shift = Shift::orderBy('mulai', 'asc')->whereNotIn('kode', ['L']);
 

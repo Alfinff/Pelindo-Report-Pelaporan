@@ -130,7 +130,7 @@ function validasiJadwal($jadwalshiftid, $userid)
 		$cekJadwal = Jadwal::where('uuid', $jadwalshiftid)->where('user_id', $userid)->whereDate('tanggal', date('Y-m-d'))->first();
 		if(!$cekJadwal) {
 			// cek jadwal hari sebelumnya
-			$cekJadwal = Jadwal::where('user_id', $userid)->whereDate('tanggal', date('Y-m-d', $minus_oneday))->first();
+			$cekJadwal = Jadwal::where('user_id', $userid)->whereDate('tanggal', date('Y-m-d', $minus_oneday))->where('kode_shift', 'M')->first();
 			if (!$cekJadwal) {
 				return array('errcode' => 1, 'data'  => '');
 			} else {
