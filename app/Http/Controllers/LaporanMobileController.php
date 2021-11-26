@@ -80,7 +80,9 @@ class LaporanMobileController extends Controller
 
             $data = $formKategoriIsian->map(function ($dataKategori) use ($laporanisi) {
                 $data = [];
-                $form = FormIsian::with(['jenis_form', 'kategori_isian', 'pilihan'])->where('status', 1)->where('kategori', $dataKategori->kode)->where('form_jenis', $this->request->form_jenis)->orderBy('kategori', 'asc')->get();
+                $form = FormIsian::with(['jenis_form', 'kategori_isian', 'pilihan' => function($query) {
+                    $query->orderBy('pilihan', 'asc');
+                }])->where('status', 1)->where('kategori', $dataKategori->kode)->where('form_jenis', $this->request->form_jenis)->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
 
                 $form = $form->map(function ($dataForm) use ($laporanisi) {
                     $isian = [];
