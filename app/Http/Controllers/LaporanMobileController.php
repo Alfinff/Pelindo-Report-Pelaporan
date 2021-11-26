@@ -586,6 +586,33 @@ class LaporanMobileController extends Controller
                         'message' => 'ID Form Tidak Sesuai',
                         'code'    => 404,
                     ]);
+                } else {
+                    if($cekForm->tipe!='ISIAN') {
+                        if($item['pilihan_id']==null) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Masih ada pilihan yang belum dijawab, periksa kembali!',
+                                'code'    => 404,
+                            ]);
+                        }
+                    } else if($cekForm->tipe=='ISIAN') {
+                        if($item['isian']==null) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Masih ada form yang belum dijawab, periksa kembali!',
+                                'code'    => 404,
+                            ]);
+                        }
+                    }
+                }
+
+                $cekForm = FormIsian::where('uuid', $item['form_isian_id'])->where('form_jenis', $this->request->form_jenis)->first();
+                if(!$cekForm) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'ID Form Tidak Sesuai',
+                        'code'    => 404,
+                    ]);
                 }
 
                 $laporanIsi = LaporanIsi::create([
