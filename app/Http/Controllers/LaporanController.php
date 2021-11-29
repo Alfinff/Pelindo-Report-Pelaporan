@@ -94,7 +94,7 @@ class LaporanController extends Controller
                         $isi = $isi->get();
 
                         $isi->map(function ($isi) {
-                            return $isi->eos = $isi->laporan->user->nama;
+                            return $isi->eos = $isi->laporan->user->nama ?? '';
                         });
                         $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
@@ -111,24 +111,36 @@ class LaporanController extends Controller
                                 $jamakhir = $plus1jam->format('H:00');
                             }
                             
-                            return $jamawal.'-'.$jamakhir;
+                            // return $jamawal.'-'.$jamakhir;
+                            return $jamawal;
                         });
 
                         $warna = $isi->map(function ($isi) {
-                            return $isi->warna = $isi->laporan->user->color;
+                            return $isi->warna = $isi->laporan->user->color ?? '';
                         });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
-                                return $isi->keadaan = $isi->pilihan->pilihan;
+                                return $isi->keadaan = $isi->pilihan->pilihan ?? '';
                             } else {
-                                return $isi->keadaan = $isi->isian;
+                                return $isi->keadaan = $isi->isian ?? '';
                             }
                         });
 
                         return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
+                    $jadwal = Jadwal::with('user')->whereHas('user')->where('kode_shift', $shift->kode);
+                    if ($request->date) {
+                        $date = $request->date;
+                        $jadwal = $jadwal->whereDate('tanggal', '=', $date);
+                    }
+                    $jadwal = $jadwal->get();
+
+                    $eosNM = $jadwal->map(function ($jj) use ($request, $shift) {
+                        return $jj->eos = $jj->user->nama ?? '';
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
                
@@ -221,7 +233,7 @@ class LaporanController extends Controller
                         $isi = $isi->get();
 
                         $isi->map(function ($isi) {
-                            return $isi->eos = $isi->laporan->user->nama;
+                            return $isi->eos = $isi->laporan->user->nama ?? '';
                         });
                         $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
@@ -238,24 +250,36 @@ class LaporanController extends Controller
                                 $jamakhir = $plus1jam->format('H:00');
                             }
                             
-                            return $jamawal.'-'.$jamakhir;
+                            // return $jamawal.'-'.$jamakhir;
+                            return $jamawal;
                         });
 
                         $warna = $isi->map(function ($isi) {
-                            return $isi->warna = $isi->laporan->user->color;
+                            return $isi->warna = $isi->laporan->user->color ?? '';
                         });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
-                                return $isi->keadaan = $isi->pilihan->pilihan;
+                                return $isi->keadaan = $isi->pilihan->pilihan ?? '';
                             } else {
-                                return $isi->keadaan = $isi->isian;
+                                return $isi->keadaan = $isi->isian ?? '';
                             }
                         });
 
                         return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
+                    $jadwal = Jadwal::with('user')->whereHas('user')->where('kode_shift', $shift->kode);
+                    if ($request->date) {
+                        $date = $request->date;
+                        $jadwal = $jadwal->whereDate('tanggal', '=', $date);
+                    }
+                    $jadwal = $jadwal->get();
+
+                    $eosNM = $jadwal->map(function ($jj) use ($request, $shift) {
+                        return $jj->eos = $jj->user->nama ?? '';
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
                
@@ -348,7 +372,7 @@ class LaporanController extends Controller
                         $isi = $isi->get();
 
                         $isi->map(function ($isi) {
-                            return $isi->eos = $isi->laporan->user->nama;
+                            return $isi->eos = $isi->laporan->user->nama ?? '';
                         });
                         $s = $isi->map(function ($isi) {
                             return $isi->jam_laporan = Carbon::parse($isi->created_at)->format('H:i');
@@ -365,24 +389,37 @@ class LaporanController extends Controller
                                 $jamakhir = $plus1jam->format('H:00');
                             }
                             
-                            return $jamawal.'-'.$jamakhir;
+                            // return $jamawal.'-'.$jamakhir;
+                            return $jamawal;
                         });
 
                         $warna = $isi->map(function ($isi) {
-                            return $isi->warna = $isi->laporan->user->color;
+                            return $isi->warna = $isi->laporan->user->color ?? '';
                         });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
-                                return $isi->keadaan = $isi->pilihan->pilihan;
+                                return $isi->keadaan = $isi->pilihan->pilihan ?? '';
                             } else {
-                                return $isi->keadaan = $isi->isian;
+                                return $isi->keadaan = $isi->isian ?? '';
                             }
                         });
 
-                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
+                        return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = 
+                        $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
+                    $jadwal = Jadwal::with('user')->whereHas('user')->where('kode_shift', $shift->kode);
+                    if ($request->date) {
+                        $date = $request->date;
+                        $jadwal = $jadwal->whereDate('tanggal', '=', $date);
+                    }
+                    $jadwal = $jadwal->get();
+
+                    $eosNM = $jadwal->map(function ($jj) use ($request, $shift) {
+                        return $jj->eos = $jj->user->nama ?? '';
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
                
