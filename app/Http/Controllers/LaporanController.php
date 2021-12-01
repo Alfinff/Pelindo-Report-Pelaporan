@@ -47,11 +47,14 @@ class LaporanController extends Controller
             try {
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
-                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
+                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift');
                 
                 if ($request->date) {
                     $date = $request->date;
-                    $catatan = $catatan->whereDate('created_at', '=', $date);
+                    // $catatan = $catatan->whereDate('created_at', '=', $date);
+                    $catatan = $catatan->whereHas('jadwal', function ($qq) use ($date) {
+                        $qq->whereDate('tanggal', '=', $date);
+                    });
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
@@ -68,7 +71,7 @@ class LaporanController extends Controller
                 }
 
                 $shift = $shift->get();
-                $catatan = $catatan->get();
+                $catatan = $catatan->orderBy('created_at', 'asc')->get();
 
                 $shift->map(function ($shift) use ($request){
                     $cek = FormIsian::where('form_jenis', 'FCT')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
@@ -186,11 +189,14 @@ class LaporanController extends Controller
             try {
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
-                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
+                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift');
                 
                 if ($request->date) {
                     $date = $request->date;
-                    $catatan = $catatan->whereDate('created_at', '=', $date);
+                    // $catatan = $catatan->whereDate('created_at', '=', $date);
+                    $catatan = $catatan->whereHas('jadwal', function ($qq) use ($date) {
+                        $qq->whereDate('tanggal', '=', $date);
+                    });
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
@@ -207,7 +213,7 @@ class LaporanController extends Controller
                 }
 
                 $shift = $shift->get();
-                $catatan = $catatan->get();
+                $catatan = $catatan->orderBy('created_at', 'asc')->get();
 
                 $shift->map(function ($shift) use ($request){
                     $cek = FormIsian::where('form_jenis', 'CLN')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
@@ -325,11 +331,14 @@ class LaporanController extends Controller
             try {
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
-                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal.shift')->orderBy('created_at', 'desc');
+                $catatan = LaporanShift::with('user', 'jadwal.shift')->whereHas('jadwal')->whereHas('jadwal.shift');
                 
                 if ($request->date) {
                     $date = $request->date;
-                    $catatan = $catatan->whereDate('created_at', '=', $date);
+                    // $catatan = $catatan->whereDate('created_at', '=', $date);
+                    $catatan = $catatan->whereHas('jadwal', function ($qq) use ($date) {
+                        $qq->whereDate('tanggal', '=', $date);
+                    });
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
@@ -346,7 +355,7 @@ class LaporanController extends Controller
                 }
 
                 $shift = $shift->get();
-                $catatan = $catatan->get();
+                $catatan = $catatan->orderBy('created_at', 'asc')->get();
 
                 $shift->map(function ($shift) use ($request){
                     $cek = FormIsian::where('form_jenis', 'CCTV')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();

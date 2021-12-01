@@ -87,25 +87,16 @@ class DashboardController extends Controller
             }
 
             
-            $cctv = ((int)$cctv->count()/24)*100; 
-            $cleaning = ((int)$cleaning->count()/24)*100; 
-            $facilities = ((int)$facilities->count()/24)*100; 
+            $cctv = (int)$cctv->count(); 
+            $cleaning = (int)$cleaning->count(); 
+            $facilities = (int)$facilities->count(); 
+            // $cctv = ((int)$cctv->count()/24)*100; 
+            // $cleaning = ((int)$cleaning->count()/24)*100; 
+            // $facilities = ((int)$facilities->count()/24)*100; 
             
-            $cctv = number_format((double)$cctv, 2, '.', '');
-            $cleaning = number_format((double)$cleaning, 2, '.', '');
-            $facilities = number_format((double)$facilities, 2, '.', '');
-
-            // $chartLaporan = [];
-            // foreach(User::where('role', env('ROLE_EOS'))->get() as $item => $val) {
-            //     $countLaporanForm = Laporan::with('user')->where('user_id', $val->uuid)->whereMonth('created_at', date('m'))->count();
-            //     $countLaporanShift = LaporanShift::with('user')->where('user_id', $val->uuid)->whereMonth('created_at', date('m'))->count();
-
-            //     $data['user'] = $val->nama;
-            //     $data['laporanform'] = $countLaporanForm;
-            //     $data['laporanshift'] = $countLaporanShift;
-
-            //     array_push($chartLaporan, $data);
-            // }
+            // $cctv = number_format((double)$cctv, 2, '.', '');
+            // $cleaning = number_format((double)$cleaning, 2, '.', '');
+            // $facilities = number_format((double)$facilities, 2, '.', '');
 
             $shifthariini = [];
             $shifthariini = Jadwal::with('user', 'shift')->whereNotIn('kode_shift', ['L'])->whereDate('tanggal', date('Y-m-d'))->whereHas('user')->get();
@@ -141,13 +132,13 @@ class DashboardController extends Controller
                     $range = LaporanRangeJam::where('kode_shift', '!=', '');
                     $rangejam = $range;
 
-                    $laporan = LaporanIsi::with('laporan');
-                    // orderBy('created_at', 'asc')
+                    $laporan = LaporanIsi::with('laporan')->whereHas('laporan');
 
                     if ($request->date) {
                         $date = $request->date;
                         $laporan = $laporan->whereDate('created_at', '=', date('Y-m-d', strtotime($date)));
                     }
+
                     if ($request->shift) {
                         $sh = $request->shift;
                         $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
@@ -162,31 +153,24 @@ class DashboardController extends Controller
                     $rangejam = $rangejam->get();
 
                     $laporan = $laporan->where('form_isian_id', $dataPerangkat->uuid);
-
+                    $laporan = $laporan->orderBy('created_at', 'asc');
                     $laporan = $laporan->get();
                     // ->groupBy(function($date) {
                     //     return Carbon::parse($date->created_at)->format('H');
                     // });
 
                     foreach($range as $time) {
+                        $kalkulasi[$time->time] = 0;
                         if(!empty($laporan) && count($laporan)) {
                             foreach($laporan as $val) {
-                                if($val->laporan) {
-                                    if($val->laporan->range_jam_kode == $time->kode) {
-                                        // foreach($val as $item) {
-                                            if(is_int((int)$val->isian)) {
-                                                $kalkulasi[$time->time] = (int)$val->isian;
-                                            } else {
-                                                $kalkulasi[$time->time] = 0;
-                                            }
-                                        // }
-                                    } else {
-                                        $kalkulasi[$time->time] = 0;
-                                    }
+                                if($val->laporan->range_jam_kode == $time->kode) {
+                                    // foreach($val as $item) {
+                                        if(is_int((int)$val->isian)) {
+                                            $kalkulasi[$time->time] = (int)$val->isian;
+                                        }
+                                    // }
                                 }
                             }
-                        } else {
-                            $kalkulasi[$time->time] = 0;
                         }
                     }
 
@@ -536,65 +520,6 @@ class DashboardController extends Controller
                         $kalkulasi_upsapc_runtime[$this->bulan[$i]] = 0;
                     }
                 }
-
-                // $humiditybulan = $shift->map(function ($dataShift) use ($request, $i, $range, $perangkat){
-                //     $datanya = [];
-
-                //     $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $i, $range, $dataShift){
-                //         $kalkulasi = [];
-                //         $laporan = [];
-                //         $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereMonth('created_at', $i)->whereYear('created_at', date('Y'));
-
-                //         if ($request->shift) {
-                //             $sh = $request->shift;
-                //             $laporan = $laporan->whereHas('laporan.jadwal.shift', function ($q) use ($sh) {
-                //                 $q->where('kode', $sh);
-                //             });
-                //         }
-
-                //         $laporan = $laporan->where('form_isian_id', $dataPerangkat->uuid);
-
-                //         $laporan = $laporan->get()->groupBy(function($date) {
-                //             return Carbon::parse($date->created_at)->format('d');
-                //         });
-
-                //         foreach($range as $day) {
-                //             if(!empty($laporan) && count($laporan)) {
-                //                 foreach($laporan as $dd => $val) {
-                //                     if((int)$dd == $day) {
-                //                         $kalkulasi[(int)$dd] = 0;
-                //                         foreach($val as $item) {
-                //                             if(is_int((int)$item->isian)) {
-                //                                 $kalkulasi[(int)$dd] += (int)$item->isian;
-                //                             } else {
-                //                                 $kalkulasi[(int)$dd] += 0;
-                //                             }
-                //                         }
-                //                         $kalkulasi[(int)$day] = ((int)$kalkulasi[(int)$day]/(int)count($laporan));
-                //                         $kalkulasi[(int)$day] = number_format((double)$kalkulasi[(int)$day], 2, '.', '');
-                //                     } else {
-                //                         $kalkulasi[(int)$day] = 0;
-                //                     }
-                //                 }
-                //             } else {
-                //                 $kalkulasi[(int)$day] = 0;
-                //             }
-                //         }
-
-                //         $return['perangkat'] = $dataPerangkat->judul;
-                //         $return['perhari'] = $kalkulasi;
-                //         $return['hari'] = $range;
-
-                //         return $return;
-                //     });
-
-                //     $datanya['shift'] = $dataShift;
-                //     $datanya['kalkulasi'] = $dataLaporan; 
-
-                //     return $datanya;
-                // });
-
-                // $humidityperbulan[$this->bulan[$i]] = $humiditybulan;
             }
 
             $range = 0;
@@ -610,12 +535,18 @@ class DashboardController extends Controller
                 $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $range, $dataShift){
                     $kalkulasi = [];
                     $laporan = [];
-                    $laporan = LaporanIsi::orderBy('created_at', 'asc')->whereYear('created_at', date('Y'));
+                    $laporan = LaporanIsi::whereHas('laporan')->whereYear('created_at', date('Y'));
                     
                     if ($request->date) {
-                        $laporan = $laporan->whereMonth('created_at', date('m', strtotime($request->date)));
+                        // $laporan = $laporan->whereMonth('created_at', date('m', strtotime($request->date)));
+                        $laporan = $laporan->whereHas('laporan', function ($qq) use ($request) {
+                            $qq->whereMonth('created_at', date('m', strtotime($request->date)));
+                        });
                     } else {
-                        $laporan = $laporan->whereMonth('created_at', date('m'));
+                        // $laporan = $laporan->whereMonth('created_at', date('m'));
+                        $laporan = $laporan->whereHas('laporan', function ($qq) {
+                            $qq->whereMonth('created_at', date('m'));
+                        });
                     }
 
                     if ($request->shift) {
@@ -626,32 +557,27 @@ class DashboardController extends Controller
                     }
                     
                     $laporan = $laporan->where('form_isian_id', $dataPerangkat->uuid);
-
-                    $laporan = $laporan->get()->groupBy(function($date) {
+                    $laporan = $laporan->orderBy('created_at', 'asc');
+                    $laporan = $laporan->get();
+                    $laporan = $laporan->groupBy(function($date) {
                         return Carbon::parse($date->created_at)->format('d');
                     });
                     
                     $namahari = [];
                     foreach($range as $id => $day) {
+                        $kalkulasi[(int)$day] = 0;
                         if(!empty($laporan) && count($laporan)) {
                             foreach($laporan as $dd => $val) {
-                                if((int)$dd == $day) {
-                                    $kalkulasi[(int)$dd] = 0;
+                                if((int)$day == (int)$dd) {
                                     foreach($val as $item) {
                                         if(is_int((int)$item->isian)) {
-                                            $kalkulasi[(int)$dd] += (int)$item->isian;
-                                        } else {
-                                            $kalkulasi[(int)$dd] += 0;
+                                            $kalkulasi[(int)$day] += (int)$item->isian;
                                         }
                                     }
                                     $kalkulasi[(int)$day] = ((int)$kalkulasi[(int)$day]/(int)count($laporan));
                                     $kalkulasi[(int)$day] = number_format((double)$kalkulasi[(int)$day], 2, '.', '');
-                                } else {
-                                    $kalkulasi[(int)$day] = 0;
                                 }
                             }
-                        } else {
-                            $kalkulasi[(int)$day] = 0;
                         }
 
                         $tglnya = 0;
