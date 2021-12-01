@@ -86,6 +86,7 @@ $app->routeMiddleware([
 	'role.supervisor'    => App\Http\Middleware\SuperVisorMiddleware::class,
 	'role.eos'  => App\Http\Middleware\EOSMiddleware::class,
     'role.super' => App\Http\Middleware\SuperMiddleware::class,
+    'role.all' => App\Http\Middleware\AllMiddleware::class,
 ]);
 
 

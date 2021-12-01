@@ -33,7 +33,7 @@ $router->get('/tesdb', function () use ($router) {
 });
 
 // , 'middleware' => ['jwt.auth', 'role.super']
-$router->group(['prefix' => 'dashboard'], function() use ($router) {
+$router->group(['prefix' => 'dashboard', 'middleware' => ['jwt.auth', 'role.all']], function() use ($router) {
     $router->get('/', 'DashboardController@getDashboard');
 });
 
