@@ -118,14 +118,27 @@ class LaporanController extends Controller
                             return $jamawal;
                         });
 
-                        $warna = $isi->map(function ($isi) {
-                            return $isi->warna = $isi->laporan->user->color ?? '';
-                        });
-                        $isi->map(function ($isi) {
-                            if ($isi->pilihan){
-                                return $isi->keadaan = $isi->pilihan->pilihan ?? '';
+                        $warna = $isi->map(function ($isi) use ($cek) {
+                            // return $isi->warna = $isi->laporan->user->color ?? '';
+                            if($cek->kategori == 'PAC') {
+                                return $isi->warna = color_value($isi->isian ?? '');
                             } else {
+                                if ($isi->pilihan){
+                                    return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
+                                } else {
+                                    return $isi->warna = color_value($isi->isian ?? '');
+                                }
+                            }
+                        });
+                        $isi->map(function ($isi) use ($cek) {
+                            if($cek->kategori == 'PAC') {
                                 return $isi->keadaan = $isi->isian ?? '';
+                            } else {
+                                if ($isi->pilihan){
+                                    return $isi->keadaan = $isi->pilihan->pilihan ?? '';
+                                } else {
+                                    return $isi->keadaan = $isi->isian ?? '';
+                                }
                             }
                         });
 
@@ -260,8 +273,17 @@ class LaporanController extends Controller
                             return $jamawal;
                         });
 
-                        $warna = $isi->map(function ($isi) {
-                            return $isi->warna = $isi->laporan->user->color ?? '';
+                        $warna = $isi->map(function ($isi) use ($cek) {
+                            // return $isi->warna = $isi->laporan->user->color ?? '';
+                            if($cek->kategori == 'PAC') {
+                                return $isi->warna = color_value($isi->isian ?? '');
+                            } else {
+                                if ($isi->pilihan){
+                                    return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
+                                } else {
+                                    return $isi->warna = color_value($isi->isian ?? '');
+                                }
+                            }
                         });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){
@@ -402,8 +424,17 @@ class LaporanController extends Controller
                             return $jamawal;
                         });
 
-                        $warna = $isi->map(function ($isi) {
-                            return $isi->warna = $isi->laporan->user->color ?? '';
+                        $warna = $isi->map(function ($isi) use ($cek) {
+                            // return $isi->warna = $isi->laporan->user->color ?? '';
+                            if($cek->kategori == 'PAC') {
+                                return $isi->warna = color_value($isi->isian ?? '');
+                            } else {
+                                if ($isi->pilihan){
+                                    return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
+                                } else {
+                                    return $isi->warna = color_value($isi->isian ?? '');
+                                }
+                            }
                         });
                         $isi->map(function ($isi) {
                             if ($isi->pilihan){

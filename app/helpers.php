@@ -344,3 +344,31 @@ function getnameofday($date)
 		return writeLog($e->getMessage());
 	}
 }
+
+function color_value($str) {
+	try {
+		$str = str_replace(' ', '', trim(strtolower($str), ' '));
+		if(is_numeric($str)) {
+			return '#495b64';
+		}
+		if(($str == 'ok') || ($str == 'standby')) {
+			return '#1289ff';
+		} else if(($str == 'on') || ($str == 'hijau(penuh)')) {
+			return 'rgb(24 255 63)';
+		} else if(($str == 'normal')) {
+			return '#10c747';
+		} else if(($str == 'notok') || ($str == 'off') || ($str == 'merah(kosong)')) {
+			return 'rgb(255 3 3)';
+		} else if(($str == 'critical') || ($str == 'alarm') || ($str == 'running')) {
+			return '#ff4a23';
+		} else if(($str == 'smokephotoelectric') || ($str == 'smokeionization')) {
+			return '#a31d00';
+		} else if($str == 'notapplicable') {
+			return '#fbb912';
+		} else {
+			return 'rgb(0 0 0)';
+		}
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
+}
