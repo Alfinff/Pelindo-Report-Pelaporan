@@ -58,6 +58,23 @@ class DashboardController extends Controller
             //     ]);
             // }
 
+            $tanggalsekarang = '';
+            $tanggalrequest =  '';
+            $minusoneday = '';
+            $plusoneday = '';
+
+            $date = date('Y-m-d');
+            $tanggalsekarang = date('Y-m-d');
+            $minusoneday = date('Y-m-d', strtotime("-1 day", strtotime($tanggalsekarang)));
+            $plusoneday = date('Y-m-d', strtotime("+1 day", strtotime($tanggalsekarang)));
+
+            if ($request->date) {
+                $date = date('Y-m-d', strtotime($request->date));
+                $tanggalrequest = date('Y-m-d', strtotime($request->date));
+                $minusoneday = date('Y-m-d', strtotime("-1 day", strtotime($tanggalrequest)));
+                $plusoneday = date('Y-m-d', strtotime("+1 day", strtotime($tanggalrequest)));
+            }
+
             $jumlaheos = 0; $jumlaheos = User::where('role', env('ROLE_EOS'))->count();
             $jumlahsupervisor = 0; $jumlahsupervisor = User::where('role', env('ROLE_SPV'))->count();
             $jumlahsuperadmin = 0; $jumlahsuperadmin = User::where('role', env('ROLE_SPA'))->count();
@@ -67,30 +84,72 @@ class DashboardController extends Controller
             $cleaning = 0; 
             $facilities = 0; 
 
-            $cctv = Laporan::where('form_jenis', env('FORM_CCTV')); 
-            $cleaning = Laporan::where('form_jenis', env('FORM_CLEANING')); 
-            $facilities = Laporan::where('form_jenis', env('FORM_FACILITIES'));
+            $rangeA = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            $rangeB = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
 
-            $date = date('Y-m-d');
-            if ($request->date) {
-                $date = date('Y-m-d', strtotime($request->date));
+            // $cctv = Laporan::where('form_jenis', env('FORM_CCTV')); 
+            // $cleaning = Laporan::where('form_jenis', env('FORM_CLEANING')); 
+            // $facilities = Laporan::where('form_jenis', env('FORM_FACILITIES'));
+            $cctvhari1 = 0;
+            $cctvhari2 = 0;
+            $cleaninghari1 = 0;
+            $cleaninghari2 = 0;
+            $facilitieshari1 = 0;
+            $facilitieshari2 = 0;
+
+            if(date('H') < 8) {
+                $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
+                $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
+                $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
+                $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
+                $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
+                $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
+            } else if((date('H') >= 8) && (date('H') <= 23)) {
+                if ($request->date) {
+                    $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
+                    $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'))->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
+                    $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
+                    $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'))->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
+                    $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
+                    $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
+                } else {
+                    $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
+                    $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'))->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
+                    $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
+                    $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'))->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
+                    $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
+                    $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
+                }
             }
 
-            if ($request->date) {
-                $cctv = $cctv->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
-                $cleaning = $cleaning->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
-                $facilities = $facilities->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)));
-            } else {
-                $cctv = $cctv->whereDate('created_at', date('Y-m-d'));
-                $cleaning = $cleaning->whereDate('created_at', date('Y-m-d'));
-                $facilities = $facilities->whereDate('created_at', date('Y-m-d'));
-            }
+            if($request->shift) {
+                $sh = $request->shift;
 
+                $cctvhari1 = $cctvhari1->whereHas('jadwal', function($dd) use ($sh) {
+                    $dd->where('kode_shift', $sh);
+                });
+                $cctvhari2 = $cctvhari2->whereHas('jadwal', function($dd) use ($sh) {
+                    $dd->where('kode_shift', $sh);
+                });
+                $cleaninghari1 = $cleaninghari1->whereHas('jadwal', function($dd) use ($sh) {
+                    $dd->where('kode_shift', $sh);
+                });
+                $cleaninghari2 = $cleaninghari2->whereHas('jadwal', function($dd) use ($sh) {
+                    $dd->where('kode_shift', $sh);
+                });
+                $facilitieshari1 = $facilitieshari1->whereHas('jadwal', function($dd) use ($sh) {
+                    $dd->where('kode_shift', $sh);
+                });
+                $facilitieshari2 = $facilitieshari2->whereHas('jadwal', function($dd) use ($sh) {
+                    $dd->where('kode_shift', $sh);
+                });
+            }
             
-            $cctv = (int)$cctv->count(); 
-            $cleaning = (int)$cleaning->count(); 
-            $facilities = (int)$facilities->count(); 
-            // $cctv = ((int)$cctv->count()/24)*100; 
+            $cctv = (int)$cctvhari1->count()+(int)$cctvhari2->count();
+            $cleaning = (int)$cleaninghari1->count()+(int)$cleaninghari2->count();
+            $facilities = (int)$facilitieshari1->count()+(int)$facilitieshari2->count();
+
+            // $cctv = ((int)$cctv->count()/24)*100;
             // $cleaning = ((int)$cleaning->count()/24)*100; 
             // $facilities = ((int)$facilities->count()/24)*100; 
             
@@ -165,7 +224,7 @@ class DashboardController extends Controller
                             foreach($laporan as $val) {
                                 if($val->laporan->range_jam_kode == $time->kode) {
                                     // foreach($val as $item) {
-                                        if(is_int((int)$val->isian)) {
+                                        if(is_numeric($val->isian)) {
                                             $kalkulasi[$time->time] = (int)$val->isian;
                                         }
                                     // }
@@ -181,6 +240,8 @@ class DashboardController extends Controller
 
                     $return['perangkat'] = $dataPerangkat->judul;
                     $return['perjam'] = $kalkulasi;
+                    $return['range'] = $range;
+                    $return['rangejam'] = $rangejam;
                     $return['jam'] = $datarangejam;
 
                     return $return;
@@ -540,12 +601,12 @@ class DashboardController extends Controller
                     if ($request->date) {
                         // $laporan = $laporan->whereMonth('created_at', date('m', strtotime($request->date)));
                         $laporan = $laporan->whereHas('laporan', function ($qq) use ($request) {
-                            $qq->whereMonth('created_at', date('m', strtotime($request->date)));
+                            $qq->whereMonth('created_at', '=', date('m', strtotime($request->date)));
                         });
                     } else {
                         // $laporan = $laporan->whereMonth('created_at', date('m'));
                         $laporan = $laporan->whereHas('laporan', function ($qq) {
-                            $qq->whereMonth('created_at', date('m'));
+                            $qq->whereMonth('created_at', '=', date('m'));
                         });
                     }
 
@@ -570,7 +631,7 @@ class DashboardController extends Controller
                             foreach($laporan as $dd => $val) {
                                 if((int)$day == (int)$dd) {
                                     foreach($val as $item) {
-                                        if(is_int((int)$item->isian)) {
+                                        if(is_numeric($item->isian)) {
                                             $kalkulasi[(int)$day] += (int)$item->isian;
                                         }
                                     }
