@@ -263,7 +263,7 @@ class DashboardController extends Controller
             );
 
             $whereUPSLIKE = "tipe LIKE '%ISIAN%'";
-            $whereUPSAPCLIKE = "tipe LIKE '%DROPDOWN%'";
+            $whereUPSAPCLIKE = "tipe LIKE '%ISIAN%'";
 
             $where_ups1_ampere = "judul LIKE 'UPS 1 Ampere (A) (R)%' OR judul LIKE 'UPS 1 Ampere (A) (S)%' OR judul LIKE 'UPS 1 Ampere (A) (T)%'";
             $where_ups1_voltage = "judul LIKE 'UPS 1 Voltage (Vac) (R)%' OR judul LIKE 'UPS 1 Voltage (Vac) (S)%' OR judul LIKE 'UPS 1 Voltage (Vac) (T)%'";
@@ -275,7 +275,7 @@ class DashboardController extends Controller
 
             $where_upsapc_ampere = "judul LIKE 'Iout (A) (R)%' OR judul LIKE 'Iout (A) (S)%' OR judul LIKE 'Iout (A) (T)%'";
             $where_upsapc_voltage = "judul LIKE 'Vout (Vac) (R)%' OR judul LIKE 'Vout (Vac) (S)%' OR judul LIKE 'Vout (Vac) (T)%'";
-            $where_upsapc_runtime = "judul LIKE 'Runtime (min) (R)%' OR judul LIKE 'Runtime (min) (S)%' OR judul LIKE 'Runtime (min) (T)%'";
+            $where_upsapc_runtime = "judul LIKE 'Runtime (min)%'";
 
             $ups1_ampere  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_ampere)->get();
             $ups1_voltage  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_voltage)->get();
