@@ -121,7 +121,11 @@ class LaporanController extends Controller
                         $warna = $isi->map(function ($isi) use ($cek) {
                             // return $isi->warna = $isi->laporan->user->color ?? '';
                             if($cek->kategori == 'PAC') {
-                                return $isi->warna = color_value($isi->isian ?? '');
+                                if(($isi->isian != '') && ($isi->isian != null)) {
+                                    return $isi->warna = color_value($isi->isian ?? '');
+                                } else {
+                                    return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
+                                }
                             } else {
                                 if ($isi->pilihan){
                                     return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
@@ -132,7 +136,11 @@ class LaporanController extends Controller
                         });
                         $isi->map(function ($isi) use ($cek) {
                             if($cek->kategori == 'PAC') {
-                                return $isi->keadaan = $isi->isian ?? '';
+                                if(($isi->isian != '') && ($isi->isian != null)) {
+                                    return $isi->keadaan = $isi->isian ?? '';
+                                } else {
+                                    return $isi->keadaan = $isi->pilihan->pilihan ?? '';
+                                }
                             } else {
                                 if ($isi->pilihan){
                                     return $isi->keadaan = $isi->pilihan->pilihan ?? '';

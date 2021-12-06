@@ -78,9 +78,9 @@ class LaporanEOSController extends Controller
                     $a = $cek->map(function ($cek) use ($request, $shift, $uuid) {
                         $isi= LaporanIsi::with('laporan.jadwal.shift','laporan.user','pilihan')
                         ->where('form_isian_id', $cek->uuid)
-                        ->whereHas('laporan.user', function ($uu) use ($uuid){
-                            $uu->where('uuid', $uuid);
-                        })
+                        // ->whereHas('laporan.user', function ($uu) use ($uuid){
+                        //     $uu->where('uuid', $uuid);
+                        // })
                         ->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
                         });
@@ -124,7 +124,11 @@ class LaporanEOSController extends Controller
 
                         $warna = $isi->map(function ($isi) use ($cek) {
                             if($cek->kategori == 'PAC') {
-                                return $isi->warna = color_value($isi->isian ?? '');
+                                if(($isi->isian != '') && ($isi->isian != null)) {
+                                    return $isi->warna = color_value($isi->isian ?? '');
+                                } else {
+                                    return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
+                                }
                             } else {
                                 if ($isi->pilihan){
                                     return $isi->warna = color_value($isi->pilihan->pilihan ?? '');
@@ -133,9 +137,13 @@ class LaporanEOSController extends Controller
                                 }
                             }
                         });
-                        $warna = $isi->map(function ($isi) use ($cek) {
+                        $isi->map(function ($isi) use ($cek) {
                             if($cek->kategori == 'PAC') {
-                                return $isi->keadaan = $isi->isian ?? '';
+                                if(($isi->isian != '') && ($isi->isian != null)) {
+                                    return $isi->keadaan = $isi->isian ?? '';
+                                } else {
+                                    return $isi->keadaan = $isi->pilihan->pilihan ?? '';
+                                }
                             } else {
                                 if ($isi->pilihan){
                                     return $isi->keadaan = $isi->pilihan->pilihan ?? '';
@@ -148,7 +156,18 @@ class LaporanEOSController extends Controller
                         return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
+                    $jadwal = Jadwal::with('user')->whereHas('user')->where('kode_shift', $shift->kode);
+                    if ($request->date) {
+                        $date = $request->date;
+                        $jadwal = $jadwal->whereDate('tanggal', '=', $date);
+                    }
+                    $jadwal = $jadwal->get();
+
+                    $eosNM = $jadwal->map(function ($jj) use ($request, $shift) {
+                        return $jj->eos = $jj->user->nama ?? '';
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
                
@@ -225,9 +244,9 @@ class LaporanEOSController extends Controller
                     $a = $cek->map(function ($cek) use ($request, $shift, $uuid) {
                         $isi= LaporanIsi::with('laporan.jadwal.shift','laporan.user','pilihan')
                         ->where('form_isian_id', $cek->uuid)
-                        ->whereHas('laporan.user', function ($uu) use ($uuid){
-                            $uu->where('uuid', $uuid);
-                        })
+                        // ->whereHas('laporan.user', function ($uu) use ($uuid){
+                        //     $uu->where('uuid', $uuid);
+                        // })
                         ->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
                         });
@@ -291,7 +310,18 @@ class LaporanEOSController extends Controller
                         return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
+                    $jadwal = Jadwal::with('user')->whereHas('user')->where('kode_shift', $shift->kode);
+                    if ($request->date) {
+                        $date = $request->date;
+                        $jadwal = $jadwal->whereDate('tanggal', '=', $date);
+                    }
+                    $jadwal = $jadwal->get();
+
+                    $eosNM = $jadwal->map(function ($jj) use ($request, $shift) {
+                        return $jj->eos = $jj->user->nama ?? '';
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
                
@@ -368,9 +398,9 @@ class LaporanEOSController extends Controller
                     $a = $cek->map(function ($cek) use ($request, $shift, $uuid) {
                         $isi= LaporanIsi::with('laporan.jadwal.shift','laporan.user','pilihan')
                         ->where('form_isian_id', $cek->uuid)
-                        ->whereHas('laporan.user', function ($uu) use ($uuid){
-                            $uu->where('uuid', $uuid);
-                        })
+                        // ->whereHas('laporan.user', function ($uu) use ($uuid){
+                        //     $uu->where('uuid', $uuid);
+                        // })
                         ->whereHas('laporan.jadwal.shift', function ($q) use ($shift){
                             $q->where('nama', $shift->nama);
                         });
@@ -434,7 +464,18 @@ class LaporanEOSController extends Controller
                         return [$cek->kondisi = $isi, $cek->s = $s, $cek->warna = $warna, $cek->rangejam = $rangejam];
                     });
 
-                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3]];
+                    $jadwal = Jadwal::with('user')->whereHas('user')->where('kode_shift', $shift->kode);
+                    if ($request->date) {
+                        $date = $request->date;
+                        $jadwal = $jadwal->whereDate('tanggal', '=', $date);
+                    }
+                    $jadwal = $jadwal->get();
+
+                    $eosNM = $jadwal->map(function ($jj) use ($request, $shift) {
+                        return $jj->eos = $jj->user->nama ?? '';
+                    });
+
+                    return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
                
