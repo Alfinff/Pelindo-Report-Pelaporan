@@ -12,6 +12,7 @@ use App\Models\Shift;
 use App\Models\LaporanIsi;
 use App\Models\LaporanShift;
 use App\Models\LaporanDikerjakan;
+use App\Models\LaporanCetakApproval;
 use App\Models\LaporanRangeJam;
 use App\Models\FormIsian;
 use App\Models\FormJenis;
@@ -31,7 +32,6 @@ class LaporanEOSController extends Controller
 
     public function getLaporanFct(Request $request)
     {
-        // return $request->date;
         $decodeToken = parseJwt($this->request->header('Authorization'));
         $uuid        = $decodeToken->user->uuid;
         $user        = User::where('uuid', $uuid)->first();
@@ -45,16 +45,25 @@ class LaporanEOSController extends Controller
         }
         else {
             try {
+                $shift = null;
+                $catatan = null;
+                $approval = null;
+
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')
                 ->where('user_id', $uuid)
                 ->whereHas('jadwal.shift')
                 ->orderBy('created_at', 'desc');
+
+                $approval = LaporanCetakApproval::where('user_id', $uuid)->where('jenis', 'FCT');
                 
                 if ($request->date) {
-                    $date = $request->date;
+                    $date = date('Y-m-d', strtotime($request->date));
                     $catatan = $catatan->whereDate('created_at', '=', $date);
+                    $approval = $approval->whereDate('tanggal', '=', $date);
+                } else {
+                    $approval = $approval->whereDate('tanggal', '=', date('Y-m-d'));
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
@@ -72,6 +81,7 @@ class LaporanEOSController extends Controller
 
                 $shift = $shift->get();
                 $catatan = $catatan->get();
+                $approval = $approval->first();
 
                 $shift->map(function ($shift) use ($request, $uuid){
                     $cek = FormIsian::where('form_jenis', 'FCT')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
@@ -184,6 +194,7 @@ class LaporanEOSController extends Controller
                         'message' => 'OK',
                         'code'    => 200,
                         'data'  => $shift,
+                        'approval' => $approval,
                         'catatan_shift' => $catatan
                     ]);
                 }
@@ -211,16 +222,25 @@ class LaporanEOSController extends Controller
         }
         else {
             try {
+                $shift = null;
+                $catatan = null;
+                $approval = null;
+
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')
                 ->where('user_id', $uuid)
                 ->whereHas('jadwal.shift')
                 ->orderBy('created_at', 'desc');
+
+                $approval = LaporanCetakApproval::where('user_id', $uuid)->where('jenis', 'CLN');
                 
                 if ($request->date) {
-                    $date = $request->date;
+                    $date = date('Y-m-d', strtotime($request->date));
                     $catatan = $catatan->whereDate('created_at', '=', $date);
+                    $approval = $approval->whereDate('tanggal', '=', $date);
+                } else {
+                    $approval = $approval->whereDate('tanggal', '=', date('Y-m-d'));
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
@@ -238,6 +258,7 @@ class LaporanEOSController extends Controller
 
                 $shift = $shift->get();
                 $catatan = $catatan->get();
+                $approval = $approval->first();
 
                 $shift->map(function ($shift) use ($request, $uuid){
                     $cek = FormIsian::where('form_jenis', 'CLN')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
@@ -338,6 +359,7 @@ class LaporanEOSController extends Controller
                         'message' => 'OK',
                         'code'    => 200,
                         'data'  => $shift,
+                        'approval' => $approval,
                         'catatan_shift' => $catatan
                     ]);
                 }
@@ -365,16 +387,25 @@ class LaporanEOSController extends Controller
         }
         else {
             try {
+                $shift = null;
+                $catatan = null;
+                $approval = null;
+
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')
                 ->where('user_id', $uuid)
                 ->whereHas('jadwal.shift')
                 ->orderBy('created_at', 'desc');
+
+                $approval = LaporanCetakApproval::where('user_id', $uuid)->where('jenis', 'CCTV');
                 
                 if ($request->date) {
-                    $date = $request->date;
+                    $date = date('Y-m-d', strtotime($request->date));
                     $catatan = $catatan->whereDate('created_at', '=', $date);
+                    $approval = $approval->whereDate('tanggal', '=', $date);
+                } else {
+                    $approval = $approval->whereDate('tanggal', '=', date('Y-m-d'));
                 }
                 if ($request->nama) {
                     $nama = $request->nama;
@@ -392,6 +423,7 @@ class LaporanEOSController extends Controller
 
                 $shift = $shift->get();
                 $catatan = $catatan->get();
+                $approval = $approval->first();
 
                 $shift->map(function ($shift) use ($request, $uuid){
                     $cek = FormIsian::where('form_jenis', 'CCTV')->orderBy('kategori', 'asc')->orderBy('judul', 'asc')->get();
@@ -492,6 +524,7 @@ class LaporanEOSController extends Controller
                         'message' => 'OK',
                         'code'    => 200,
                         'data'  => $shift,
+                        'approval' => $approval,
                         'catatan_shift' => $catatan
                     ]);
                 }

@@ -43,6 +43,11 @@ $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.sup
         $router->get('/', 'LaporanController@getLaporan');
         $router->get('/details/{id}', 'LaporanController@detailLaporan');
         $router->get('/shift', 'LaporanController@getCatatanShift');
+
+        $router->group(['prefix' => 'cetak'], function() use ($router) {
+            $router->get('/', 'LaporanApprovalController@index');
+            $router->post('/approve', 'LaporanApprovalController@approve');
+        });
     });
 });
 
@@ -64,17 +69,19 @@ $router->group(['prefix' => 'utils'], function() use ($router) {
 $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], function() use ($router) {
     // kirim laporan lewat mobile
     $router->group(['prefix' => 'laporan'], function() use ($router) {
-        // 
         $router->get('/fct', 'LaporanEOSController@getLaporanFct');
         $router->get('/cln', 'LaporanEOSController@getLaporanCln');
         $router->get('/cctv', 'LaporanEOSController@getLaporanCctv');
-
         $router->get('/details/{id}', 'LaporanMobileController@detailLaporan');
+        
         $router->group(['prefix' => 'shift'], function() use ($router) {
             $router->post('/', 'LaporanMobileController@catatanShift');
             $router->put('/{id}', 'LaporanMobileController@updateCatatanShift');
         });        
+        
         $router->post('/form', 'LaporanMobileController@formIsian');
+        $router->post('/request-cetak', 'LaporanApprovalController@requestLaporan');
+
     });
 
 });

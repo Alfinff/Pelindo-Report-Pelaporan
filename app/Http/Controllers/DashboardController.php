@@ -90,35 +90,35 @@ class DashboardController extends Controller
             // $cctv = Laporan::where('form_jenis', env('FORM_CCTV')); 
             // $cleaning = Laporan::where('form_jenis', env('FORM_CLEANING')); 
             // $facilities = Laporan::where('form_jenis', env('FORM_FACILITIES'));
-            $cctvhari1 = 0;
-            $cctvhari2 = 0;
-            $cleaninghari1 = 0;
-            $cleaninghari2 = 0;
-            $facilitieshari1 = 0;
-            $facilitieshari2 = 0;
+            $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'));
+            $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'));
+            $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'));
+            $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'));
+            $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'));
+            $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'));
 
             if(date('H') < 8) {
-                $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
-                $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
-                $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
-                $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
-                $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
-                $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
+                $cctvhari1 = $cctvhari1->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
+                $cctvhari2 = $cctvhari2->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
+                $cleaninghari1 = $cleaninghari1->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
+                $cleaninghari2 = $cleaninghari2->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
+                $facilitieshari1 = $facilitieshari1->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeB);
+                $facilitieshari2 = $facilitieshari2->whereDate('created_at', '=', $minusoneday)->whereIn('range_jam_kode', $rangeA);
             } else if((date('H') >= 8) && (date('H') <= 23)) {
                 if ($request->date) {
-                    $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
-                    $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'))->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
-                    $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
-                    $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'))->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
-                    $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
-                    $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
+                    $cctvhari1 = $cctvhari1->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
+                    $cctvhari2 = $cctvhari2->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
+                    $cleaninghari1 = $cleaninghari1->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
+                    $cleaninghari2 = $cleaninghari2->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
+                    $facilitieshari1 = $facilitieshari1->whereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeB);
+                    $facilitieshari2 = $facilitieshari2->WhereDate('created_at', '=', $tanggalrequest)->whereIn('range_jam_kode', $rangeA);
                 } else {
-                    $cctvhari1 = Laporan::where('form_jenis', env('FORM_CCTV'))->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
-                    $cctvhari2 = Laporan::where('form_jenis', env('FORM_CCTV'))->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
-                    $cleaninghari1 = Laporan::where('form_jenis', env('FORM_CLEANING'))->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
-                    $cleaninghari2 = Laporan::where('form_jenis', env('FORM_CLEANING'))->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
-                    $facilitieshari1 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
-                    $facilitieshari2 = Laporan::where('form_jenis', env('FORM_FACILITIES'))->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
+                    $cctvhari1 = $cctvhari1->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
+                    $cctvhari2 = $cctvhari2->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
+                    $cleaninghari1 = $cleaninghari1->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
+                    $cleaninghari2 = $cleaninghari2->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
+                    $facilitieshari1 = $facilitieshari1->whereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeB);
+                    $facilitieshari2 = $facilitieshari2->WhereDate('created_at', '=', $tanggalsekarang)->whereIn('range_jam_kode', $rangeA);
                 }
             }
 
