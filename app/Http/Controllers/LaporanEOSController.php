@@ -109,7 +109,7 @@ class LaporanEOSController extends Controller
                             });
                         }                
 
-                        $isi = $isi->get();
+                        $isi = $isi->orderBy('created_at', 'asc')->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama;
@@ -129,7 +129,8 @@ class LaporanEOSController extends Controller
                                 $jamakhir = $plus1jam->format('H:00');
                             }
                             
-                            return $jamawal.'-'.$jamakhir;
+                            // return $jamawal.'-'.$jamakhir;
+                            return $jamawal;
                         });
 
                         $warna = $isi->map(function ($isi) use ($cek) {
@@ -286,7 +287,7 @@ class LaporanEOSController extends Controller
                             });
                         }                
 
-                        $isi = $isi->get();
+                        $isi = $isi->orderBy('created_at', 'asc')->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama;
@@ -306,7 +307,8 @@ class LaporanEOSController extends Controller
                                 $jamakhir = $plus1jam->format('H:00');
                             }
                             
-                            return $jamawal.'-'.$jamakhir;
+                            // return $jamawal.'-'.$jamakhir;
+                            return $jamawal;
                         });
 
                         $warna = $isi->map(function ($isi) use ($cek) {
@@ -451,7 +453,7 @@ class LaporanEOSController extends Controller
                             });
                         }                
 
-                        $isi = $isi->get();
+                        $isi = $isi->orderBy('created_at', 'asc')->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama;
@@ -471,7 +473,8 @@ class LaporanEOSController extends Controller
                                 $jamakhir = $plus1jam->format('H:00');
                             }
                             
-                            return $jamawal.'-'.$jamakhir;
+                            // return $jamawal.'-'.$jamakhir;
+                            return $jamawal;
                         });
 
                         $warna = $isi->map(function ($isi) use ($cek) {

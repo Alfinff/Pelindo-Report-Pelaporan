@@ -94,7 +94,7 @@ class LaporanController extends Controller
                             });
                         }                
 
-                        $isi = $isi->get();
+                        $isi = $isi->orderBy('created_at', 'asc')->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama ?? '';
@@ -257,7 +257,7 @@ class LaporanController extends Controller
                             });
                         }                
 
-                        $isi = $isi->get();
+                        $isi = $isi->orderBy('created_at', 'asc')->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama ?? '';
@@ -408,7 +408,7 @@ class LaporanController extends Controller
                             });
                         }                
 
-                        $isi = $isi->get();
+                        $isi = $isi->orderBy('created_at', 'asc')->get();
 
                         $isi->map(function ($isi) {
                             return $isi->eos = $isi->laporan->user->nama ?? '';
