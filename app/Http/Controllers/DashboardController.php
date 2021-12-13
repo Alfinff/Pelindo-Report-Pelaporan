@@ -171,7 +171,8 @@ class DashboardController extends Controller
             $perangkat  = [];
             $perangkat  = FormIsian::orderBy('judul', 'asc');
             $perangkat = $perangkat->where('form_jenis', env('FORM_FACILITIES'));
-            $perangkat = $perangkat->where('kategori', 'PAC');
+            // $perangkat = $perangkat->where('kategori', 'PAC');
+            $perangkat = $perangkat->whereRaw("judul LIKE '%PAC%'");
             $perangkat = $perangkat->where('tipe', 'LIKE', '%DROPDOWN%');
             $perangkat = $perangkat->get();
 
@@ -255,40 +256,41 @@ class DashboardController extends Controller
             
             $whereUPS = array(
                 'form_jenis' => env('FORM_FACILITIES'),
-                'kategori' => 'UPS'
+                // 'kategori' => 'UPS'
             );
             $whereUPSAPC = array(
                 'form_jenis' => env('FORM_FACILITIES'),
-                'kategori' => 'UPS-APC'
+                // 'kategori' => 'UPS-APC'
             );
 
             $whereUPSLIKE = "tipe LIKE '%ISIAN%'";
             $whereUPSAPCLIKE = "tipe LIKE '%ISIAN%'";
 
-            $where_ups1_ampere = "judul LIKE 'UPS 1 Ampere (A) (R)%' OR judul LIKE 'UPS 1 Ampere (A) (S)%' OR judul LIKE 'UPS 1 Ampere (A) (T)%'";
-            $where_ups1_voltage = "judul LIKE 'UPS 1 Voltage (Vac) (R)%' OR judul LIKE 'UPS 1 Voltage (Vac) (S)%' OR judul LIKE 'UPS 1 Voltage (Vac) (T)%'";
-            $where_ups1_loadlevel = "judul LIKE 'UPS 1 Load Level (%) (R)%' OR judul LIKE 'UPS 1 Load Level (%) (S)%' OR judul LIKE 'UPS 1 Load Level (%) (T)%'";
+            $where_ups1_ampere = "judul LIKE 'UPS 1 AMPERE (A) (R)%' OR judul LIKE 'UPS 1 AMPERE (A) (S)%' OR judul LIKE 'UPS 1 AMPERE (A) (T)%'";
+            $where_ups1_voltage = "judul LIKE 'UPS 1 VOLTAGE (VAC) (R)%' OR judul LIKE 'UPS 1 VOLTAGE (VAC) (S)%' OR judul LIKE 'UPS 1 VOLTAGE (VAC) (T)%'";
+            $where_ups1_loadlevel = "judul LIKE 'UPS 1 LOAD LEVEL (%) (R)%' OR judul LIKE 'UPS 1 LOAD LEVEL (%) (S)%' OR judul LIKE 'UPS 1 LOAD LEVEL (%) (T)%'";
 
-            $where_ups2_ampere = "judul LIKE 'UPS 2 Ampere (A) (R)%' OR judul LIKE 'UPS 2 Ampere (A) (S)%' OR judul LIKE 'UPS 2 Ampere (A) (T)%'";
-            $where_ups2_voltage = "judul LIKE 'UPS 2 Voltage (Vac) (R)%' OR judul LIKE 'UPS 2 Voltage (Vac) (S)%' OR judul LIKE 'UPS 2 Voltage (Vac) (T)%'";
-            $where_ups2_loadlevel = "judul LIKE 'UPS 2 Load Level (%) (R)%' OR judul LIKE 'UPS 2 Load Level (%) (S)%' OR judul LIKE 'UPS 2 Load Level (%) (T)%'";
+            $where_ups2_ampere = "judul LIKE 'UPS 2 AMPERE (A) (R)%' OR judul LIKE 'UPS 2 AMPERE (A) (S)%' OR judul LIKE 'UPS 2 AMPERE (A) (T)%'";
+            $where_ups2_voltage = "judul LIKE 'UPS 2 VOLTAGE (VAC) (R)%' OR judul LIKE 'UPS 2 VOLTAGE (VAC) (S)%' OR judul LIKE 'UPS 2 VOLTAGE (VAC) (T)%'";
+            $where_ups2_loadlevel = "judul LIKE 'UPS 2 LOAD LEVEL (%) (R)%' OR judul LIKE 'UPS 2 LOAD LEVEL (%) (S)%' OR judul LIKE 'UPS 2 LOAD LEVEL (%) (T)%'";
 
-            $where_upsapc_ampere = "judul LIKE 'Iout (A) (R)%' OR judul LIKE 'Iout (A) (S)%' OR judul LIKE 'Iout (A) (T)%'";
-            $where_upsapc_voltage = "judul LIKE 'Vout (Vac) (R)%' OR judul LIKE 'Vout (Vac) (S)%' OR judul LIKE 'Vout (Vac) (T)%'";
-            $where_upsapc_runtime = "judul LIKE 'Runtime (min)%'";
+            $where_upsapc_ampere = "judul LIKE 'UPS APC IOUT (A) (R)%' OR judul LIKE 'UPS APC IOUT (A) (S)%' OR judul LIKE 'UPS APC IOUT (A) (T)%'";
+            $where_upsapc_voltage = "judul LIKE 'UPS APC VOUT (VAC) (R)%' OR judul LIKE 'UPS APC VOUT (VAC) (S)%' OR judul LIKE 'UPS APC VOUT (VAC) (T)%'";
+            $where_upsapc_runtime = "judul LIKE 'UPS APC RUNTIME (MIN)%'";
 
+            
             $ups1_ampere  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_ampere)->get();
             $ups1_voltage  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_voltage)->get();
             $ups1_loadlevel  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups1_loadlevel)->get();
-
+            
             $ups2_ampere  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups2_ampere)->get();
             $ups2_voltage  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups2_voltage)->get();
             $ups2_loadlevel  = FormIsian::where($whereUPS)->whereRaw($whereUPSLIKE)->whereRaw($where_ups2_loadlevel)->get();
-
+            
             $upsapc_ampere  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_ampere)->get();
             $upsapc_voltage  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_voltage)->get();
             $upsapc_runtime  = FormIsian::where($whereUPSAPC)->whereRaw($whereUPSAPCLIKE)->whereRaw($where_upsapc_runtime)->get();
-
+            
             $humidityperbulan = [];
             for($i=1;$i<=12;$i++) {
                 $range = 0;
