@@ -52,11 +52,12 @@ class LaporanEOSController extends Controller
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')
-                ->where('user_id', $uuid)
+                // ->where('user_id', $uuid)
                 ->whereHas('jadwal.shift')
-                ->orderBy('created_at', 'desc');
+                ->orderBy('created_at', 'asc');
 
-                $approval = LaporanCetakApproval::where('user_id', $uuid)->where('jenis', 'FCT');
+                // where('user_id', $uuid)->
+                $approval = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'FCT');
                 
                 if ($request->date) {
                     $date = date('Y-m-d', strtotime($request->date));
@@ -230,11 +231,12 @@ class LaporanEOSController extends Controller
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')
-                ->where('user_id', $uuid)
+                // ->where('user_id', $uuid)
                 ->whereHas('jadwal.shift')
-                ->orderBy('created_at', 'desc');
+                ->orderBy('created_at', 'asc');
 
-                $approval = LaporanCetakApproval::where('user_id', $uuid)->where('jenis', 'CLN');
+                // where('user_id', $uuid)->
+                $approval = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'CLN');
                 
                 if ($request->date) {
                     $date = date('Y-m-d', strtotime($request->date));
@@ -396,11 +398,12 @@ class LaporanEOSController extends Controller
                 $shift = Shift::orderBy('mulai', 'asc')->where('created_at', '!=', null);
                       
                 $catatan = LaporanShift::with('user', 'jadwal.shift')
-                ->where('user_id', $uuid)
+                // ->where('user_id', $uuid)
                 ->whereHas('jadwal.shift')
-                ->orderBy('created_at', 'desc');
+                ->orderBy('created_at', 'asc');
 
-                $approval = LaporanCetakApproval::where('user_id', $uuid)->where('jenis', 'CCTV');
+                // where('user_id', $uuid)->
+                $approval = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'CCTV');
                 
                 if ($request->date) {
                     $date = date('Y-m-d', strtotime($request->date));

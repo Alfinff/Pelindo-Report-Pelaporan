@@ -113,13 +113,22 @@ class LaporanApprovalController extends Controller
             }
 
             // cek apakah sudah request
-            $cek = LaporanCetakApproval::whereDate('tanggal', $tanggal)->where('user_id', $uuid)->where('jenis', $jenis)->first();
+            // ->where('user_id', $uuid)
+            $cek = LaporanCetakApproval::with('user')->whereDate('tanggal', $tanggal)->where('jenis', $jenis)->first();
             if($cek) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda telah melakukan request laporan pada '.$tanggal,
-                    'code'    => 404,
-                ]);
+                if($cek->user->uuid == $uuid) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda telah melakukan request laporan pada '.$tanggal,
+                        'code'    => 404,
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Laporan telah direquest oleh '.ucwords($cek->user->nama ?? ''),
+                        'code'    => 404,
+                    ]);
+                }
             }
 
             // insert request
