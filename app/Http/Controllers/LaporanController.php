@@ -131,7 +131,7 @@ class LaporanController extends Controller
 
                         $warna = $isi->map(function ($isi) use ($cek) {
                             // return $isi->warna = $isi->laporan->user->color ?? '';
-                            if($cek->kategori == 'PAC') {
+                            if(strpos($cek->judul, 'PAC') !== false) {
                                 if(($isi->isian != '') && ($isi->isian != null)) {
                                     return $isi->warna = color_value($isi->isian ?? '');
                                 } else {
@@ -146,7 +146,7 @@ class LaporanController extends Controller
                             }
                         });
                         $isi->map(function ($isi) use ($cek) {
-                            if($cek->kategori == 'PAC') {
+                            if(strpos($cek->judul, 'PAC') !== false) {
                                 if(($isi->isian != '') && ($isi->isian != null)) {
                                     return $isi->keadaan = $isi->isian ?? '';
                                 } else {
