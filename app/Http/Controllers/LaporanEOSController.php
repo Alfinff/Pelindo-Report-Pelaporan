@@ -544,11 +544,10 @@ class LaporanEOSController extends Controller
 
     public function getLaporanAll(Request $request)
     {
-        // return $request->date;
-        // $decodeToken = parseJwt($this->request->header('Authorization'));
-        // $uuid        = $decodeToken->user->uuid;
-        // $user        = User::where('uuid', $uuid)->first();
-        $user=true;
+        $decodeToken = parseJwt($this->request->header('Authorization'));
+        $uuid        = $decodeToken->user->uuid;
+        $user        = User::where('uuid', $uuid)->first();
+
         if (!$user) {
             return response()->json([
                 'success' => false,

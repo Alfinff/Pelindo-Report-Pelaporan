@@ -905,7 +905,16 @@ class LaporanController extends Controller
                 $cctv->put('data',$shift);
                 $cctv->put('approval',$approval);
 				
-				$approvalAll = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'ALL')->whereDate('tanggal', '=', $date)->first();
+				$approvalAll = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'ALL');
+
+                if ($request->date) {
+                    $date = date('Y-m-d', strtotime($request->date));
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', $date);
+                } else {
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
+                }
+
+                $approvalAll = $approvalAll->first();
 				
                 if (empty($shift)) {
                     return response()->json([
