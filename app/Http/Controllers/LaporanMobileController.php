@@ -15,6 +15,7 @@ use App\Models\LaporanDikerjakan;
 use App\Models\LaporanRangeJam;
 use App\Models\FormIsian;
 use App\Models\FormIsianKategori;
+use App\Models\LaporanCetakApproval;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -622,6 +623,19 @@ class LaporanMobileController extends Controller
                     'pilihan_id' => $item['pilihan_id'] ?? '',
                     'isian' => $item['isian'] ?? '',
                     'keterangan' => $item['keterangan'] ?? '',
+                ]);
+            }
+
+            //Auto Approval Request
+            if($this->request->range_jam_kode == 'H') {
+                $approval = LaporanCetakApproval::create([
+                    'uuid'     => generateUuid(),
+                    'user_id'  => $uuid,
+                    'jenis'  => 'ALL',
+                    'tanggal'  => $minusoneday,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'is_approved' => 0,
+                    'soft_delete' => 0
                 ]);
             }
             

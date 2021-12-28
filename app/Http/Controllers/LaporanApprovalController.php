@@ -43,15 +43,20 @@ class LaporanApprovalController extends Controller
 
             if ($this->request->search) {
                 $laporan = $laporan->whereHas('user', function($dd) use ($search) {
-                    $dd->where('nama', 'like', '%'. $search .'%')
-                    ->orWhere('email', 'like', '%'. $search .'%')
-                    ->orWhere('no_hp', 'like', '%'. $search .'%')
-                    ->orWhere('role', 'like', '%'. $search .'%');
+                    $dd->where(DB::raw("trim(lower(nama))"), 'LIKE', trim(strtolower($search)).'%');
                 });
             }
 
+            if ($this->request->date) {
+                $laporan->whereDate('tanggal', date('Y-m-d', strtotime($this->request->date)));
+            }
+
+            if (($this->request->jenis) && ($this->request->jenis != 'ALL')) {
+                $laporan->where('jenis', strtoupper($this->request->jenis));
+            }
+
             $laporan = $laporan->paginate(10);
-            $laporan = $laporan->setPath(env('APP_URL', 'https://centro.pelindo.co.id/api/pelaporan/').'superadmin/laporan/cetak?search='.$this->request->search);
+            $laporan = $laporan->setPath(env('APP_URL', 'https://centro.pelindo.co.id/api/pelaporan/').'eos/laporan/cetak?search='.$this->request->search.'&jenis='.$this->request->jenis.'&date='.$this->request->date);
 
             if (empty($laporan)) {
                 return response()->json([
@@ -103,13 +108,15 @@ class LaporanApprovalController extends Controller
             $tanggal = date('Y-m-d', strtotime($this->request->tanggal));
             $jenis = strtoupper($this->request->jenis);
 
-            $formKategoriIsian = FormIsianKategori::where('form_jenis', $jenis)->get();
-            if (!count($formKategoriIsian)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data jenis form tidak ditemukan',
-                    'code'    => 404
-                ]);
+            if($jenis != 'ALL') {
+                $formKategoriIsian = FormIsianKategori::where('form_jenis', $jenis)->get();
+                if (!count($formKategoriIsian)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Data jenis form tidak ditemukan',
+                        'code'    => 404
+                    ]);
+                }
             }
 
             // cek apakah sudah request
@@ -119,7 +126,7 @@ class LaporanApprovalController extends Controller
                 if($cek->user->uuid == $uuid) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Anda telah melakukan request laporan pada '.$tanggal,
+                        'message' => 'Anda telah melakukan request laporan pada '.$tanggal.' dengan kategori '.$jenis,
                         'code'    => 404,
                     ]);
                 } else {
@@ -207,4 +214,60 @@ class LaporanApprovalController extends Controller
         }
     }
 
+    public function multiapprove()
+    {
+        // cek validasi
+        $validator = Validator::make($this->request->all(), [
+            'uuid' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return writeLogValidation($validator->errors());
+        }
+
+        DB::beginTransaction();
+        try
+        {
+            $decodeToken = parseJwt($this->request->header('Authorization'));
+            $uuid = $decodeToken->user->uuid;
+            $user = User::where('uuid', $uuid)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            $approval = explode(',',$this->request->uuid);
+            foreach($approval as $item) {
+                $laporanApprove = LaporanCetakApproval::where('uuid', $item)->first();
+                if (!$laporanApprove) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Data tidak ditemukan',
+                        'code'    => 404,
+                    ]);
+                }
+                
+                $laporanApprove->update([
+                    'approved_by'  => $uuid,
+                    'approved_at'  => date('Y-m-d H:i:s'),
+                    'is_approved'  => 1,
+                    'updated_at'  => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil approve cetak laporan',
+                'code'    => 200
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return writeLog($th->getMessage());
+        }
+    }
 }

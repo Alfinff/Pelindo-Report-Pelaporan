@@ -47,6 +47,7 @@ $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.sup
         $router->group(['prefix' => 'cetak'], function() use ($router) {
             $router->get('/', 'LaporanApprovalController@index');
             $router->post('/approve', 'LaporanApprovalController@approve');
+            $router->post('/multiapprove', 'LaporanApprovalController@multiapprove');
         });
     });
 });
@@ -57,6 +58,7 @@ $router->group(['prefix' => 'laporan', 'middleware' => ['jwt.auth', 'role.super'
         $router->get('/fct', 'LaporanController@getLaporanFct');
         $router->get('/cln', 'LaporanController@getLaporanCln');
         $router->get('/cctv', 'LaporanController@getLaporanCctv');
+        $router->get('/all', 'LaporanController@getLaporanAll');
         $router->get('/details/{id}', 'LaporanController@detailLaporan');
         $router->get('/shift', 'LaporanController@getCatatanShift');
     // });
@@ -72,12 +74,17 @@ $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], fu
         $router->get('/fct', 'LaporanEOSController@getLaporanFct');
         $router->get('/cln', 'LaporanEOSController@getLaporanCln');
         $router->get('/cctv', 'LaporanEOSController@getLaporanCctv');
+        $router->get('/all', 'LaporanEOSController@getLaporanAll');
         $router->get('/details/{id}', 'LaporanMobileController@detailLaporan');
+
+        $router->group(['prefix' => 'cetak'], function() use ($router) {
+            $router->get('/', 'LaporanApprovalController@index');
+        });
         
         $router->group(['prefix' => 'shift'], function() use ($router) {
             $router->post('/', 'LaporanMobileController@catatanShift');
             $router->put('/{id}', 'LaporanMobileController@updateCatatanShift');
-        });        
+        });
         
         $router->post('/form', 'LaporanMobileController@formIsian');
         $router->post('/request-cetak', 'LaporanApprovalController@requestLaporan');
