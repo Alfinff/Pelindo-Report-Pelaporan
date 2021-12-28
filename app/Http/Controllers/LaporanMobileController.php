@@ -628,15 +628,18 @@ class LaporanMobileController extends Controller
 
             //Auto Approval Request
             if($this->request->range_jam_kode == 'H') {
-                $approval = LaporanCetakApproval::create([
-                    'uuid'     => generateUuid(),
-                    'user_id'  => $uuid,
-                    'jenis'  => 'ALL',
-                    'tanggal'  => $minusoneday,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'is_approved' => 0,
-                    'soft_delete' => 0
-                ]);
+                $cekRequest = LaporanCetakApproval::where('jenis', 'ALL')->whereDate('tanggal', $minusoneday)->first();
+                if(!$cekRequest) {
+                    $approval = LaporanCetakApproval::create([
+                        'uuid'     => generateUuid(),
+                        'user_id'  => $uuid,
+                        'jenis'  => 'ALL',
+                        'tanggal'  => $minusoneday,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'is_approved' => 0,
+                        'soft_delete' => 0
+                    ]);
+                }
             }
             
             DB::commit();

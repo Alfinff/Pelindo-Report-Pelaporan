@@ -38,7 +38,7 @@ class LaporanApprovalController extends Controller
                 ]);
             }
             
-            $laporan = LaporanCetakApproval::with('user', 'approver')->where('soft_delete', 0)->orderBy('created_at', 'asc');
+            $laporan = LaporanCetakApproval::with('user', 'approver')->where('soft_delete', 0);
             $search = $this->request->search;
 
             if ($this->request->search) {
@@ -55,7 +55,61 @@ class LaporanApprovalController extends Controller
                 $laporan->where('jenis', strtoupper($this->request->jenis));
             }
 
-            $laporan = $laporan->paginate(10);
+            $laporan = $laporan->orderBy('created_at', 'desc')->paginate(10);
+            $laporan = $laporan->setPath(env('APP_URL', 'https://centro.pelindo.co.id/api/pelaporan/').'superadmin/laporan/cetak?search='.$this->request->search.'&jenis='.$this->request->jenis.'&date='.$this->request->date);
+
+            if (empty($laporan)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data Tidak Ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'OK',
+                'code'    => 200,
+                'data'  => $laporan
+            ]);
+        } catch (\Throwable $th) {
+            return writeLog($th->getMessage());
+        }
+    }
+
+    public function getDiEOS()
+    {
+        try 
+        {
+            $decodeToken = parseJwt($this->request->header('Authorization'));
+            $uuid = $decodeToken->user->uuid;
+            $cekUser = User::where('uuid', $uuid)->first();
+            if (!$cekUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+            
+            $laporan = LaporanCetakApproval::with('user', 'approver')->where('soft_delete', 0);
+            $search = $this->request->search;
+
+            if ($this->request->search) {
+                $laporan = $laporan->whereHas('user', function($dd) use ($search) {
+                    $dd->where(DB::raw("trim(lower(nama))"), 'LIKE', trim(strtolower($search)).'%');
+                });
+            }
+
+            if ($this->request->date) {
+                $laporan->whereDate('tanggal', date('Y-m-d', strtotime($this->request->date)));
+            }
+
+            if (($this->request->jenis) && ($this->request->jenis != 'ALL')) {
+                $laporan->where('jenis', strtoupper($this->request->jenis));
+            }
+
+            $laporan = $laporan->orderBy('created_at', 'desc')->paginate(10);
             $laporan = $laporan->setPath(env('APP_URL', 'https://centro.pelindo.co.id/api/pelaporan/').'eos/laporan/cetak?search='.$this->request->search.'&jenis='.$this->request->jenis.'&date='.$this->request->date);
 
             if (empty($laporan)) {

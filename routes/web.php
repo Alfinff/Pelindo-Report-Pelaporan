@@ -78,7 +78,7 @@ $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], fu
         $router->get('/details/{id}', 'LaporanMobileController@detailLaporan');
 
         $router->group(['prefix' => 'cetak'], function() use ($router) {
-            $router->get('/', 'LaporanApprovalController@index');
+            $router->get('/', 'LaporanApprovalController@getDiEOS');
         });
         
         $router->group(['prefix' => 'shift'], function() use ($router) {
