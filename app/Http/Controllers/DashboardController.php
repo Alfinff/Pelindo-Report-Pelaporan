@@ -46,17 +46,17 @@ class DashboardController extends Controller
     {
         try 
         {
-            // $decodeToken = parseJwt($this->request->header('Authorization'));
-            // $uuid = $decodeToken->user->uuid;
-            // $user = User::with('role', 'profile')->where('uuid', $uuid)->first();
+            $decodeToken = parseJwt($this->request->header('Authorization'));
+            $uuid = $decodeToken->user->uuid;
+            $user = User::with('role', 'profile')->where('uuid', $uuid)->first();
             
-            // if (!$user) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Pengguna tidak ditemukan',
-            //         'code'    => 404,
-            //     ]);
-            // }
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
 
             $tanggalsekarang = '';
             $tanggalrequest =  '';
@@ -587,7 +587,7 @@ class DashboardController extends Controller
 
             $range = 0;
             if ($request->date) {
-                $range = getrangedaymonth(date('m', strtotime($request->date)), date('Y'));
+                $range = getrangedaymonth(date('m', strtotime($request->date)), date('Y', strtotime($request->date)));
             } else {
                 $range = getrangedaymonth(date('m'), date('Y'));
             }
@@ -598,17 +598,25 @@ class DashboardController extends Controller
                 $dataLaporan = $perangkat->map(function($dataPerangkat) use ($request, $range, $dataShift){
                     $kalkulasi = [];
                     $laporan = [];
+
                     $laporan = LaporanIsi::whereHas('laporan')->whereYear('created_at', date('Y'));
-                    
                     if ($request->date) {
+                        $from = (int)current($range).'-'.date('m', strtotime($request->date)).'-'.date('Y', strtotime($request->date));
+                        $to = (int)end($range).'-'.date('m', strtotime($request->date)).'-'.date('Y', strtotime($request->date));
+                        
                         // $laporan = $laporan->whereMonth('created_at', date('m', strtotime($request->date)));
                         $laporan = $laporan->whereHas('laporan', function ($qq) use ($request) {
-                            $qq->whereMonth('created_at', '=', date('m', strtotime($request->date)));
+                            // $qq->whereMonth('created_at', '=', date('m', strtotime($request->date)))->whereYear('created_at', '=', date('Y', strtotime($request->date)));
+                            // $qq->whereRaw("MONTH(created_at) = '".date('m', strtotime($request->date))."' AND YEAR(created_at) = '".date('Y', strtotime($request->date))."'");
+                            // $qq->whereRaw("extract(MONTH from created_at) = '".date('m', strtotime($request->date))."' AND extract(YEAR from created_at) = '".date('Y', strtotime($request->date))."'");
+                            $qq->whereBetween('created_at', [$from, $to]);
                         });
                     } else {
                         // $laporan = $laporan->whereMonth('created_at', date('m'));
                         $laporan = $laporan->whereHas('laporan', function ($qq) {
-                            $qq->whereMonth('created_at', '=', date('m'));
+                            // $qq->whereMonth('created_at', '=', date('m'))->whereYear('created_at', '=', date('Y'));
+                            // $qq->whereRaw("MONTH(created_at) = '".date('m')."' AND YEAR(created_at) = '".date('Y')."'");
+                            $qq->whereRaw("date_trunc('month', created_at)", "=", date('m'))->whereRaw("date_trunc('year', created_at)", "=", date('Y'));
                         });
                     }
 
@@ -657,12 +665,13 @@ class DashboardController extends Controller
                     $return['perangkat'] = $dataPerangkat->judul;
                     $return['perhari'] = $kalkulasi;
                     $return['hari'] = $namahari;
+                    $return['variable'] = $from.'+'.$to;
 
                     return $return;
                 });
 
                 $datanya['shift'] = $dataShift;
-                $datanya['kalkulasi'] = $dataLaporan; 
+                $datanya['kalkulasi'] = $dataLaporan;
 
                 return $datanya;
             });
