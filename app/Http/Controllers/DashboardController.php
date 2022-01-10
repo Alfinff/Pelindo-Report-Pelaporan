@@ -599,24 +599,16 @@ class DashboardController extends Controller
                     $kalkulasi = [];
                     $laporan = [];
 
-                    $laporan = LaporanIsi::whereHas('laporan')->whereYear('created_at', date('Y'));
+                    $laporan = LaporanIsi::whereHas('laporan');
                     if ($request->date) {
-                        $from = (int)current($range).'-'.date('m', strtotime($request->date)).'-'.date('Y', strtotime($request->date));
-                        $to = (int)end($range).'-'.date('m', strtotime($request->date)).'-'.date('Y', strtotime($request->date));
-                        
                         // $laporan = $laporan->whereMonth('created_at', date('m', strtotime($request->date)));
                         $laporan = $laporan->whereHas('laporan', function ($qq) use ($request) {
-                            // $qq->whereMonth('created_at', '=', date('m', strtotime($request->date)))->whereYear('created_at', '=', date('Y', strtotime($request->date)));
-                            // $qq->whereRaw("MONTH(created_at) = '".date('m', strtotime($request->date))."' AND YEAR(created_at) = '".date('Y', strtotime($request->date))."'");
-                            // $qq->whereRaw("extract(MONTH from created_at) = '".date('m', strtotime($request->date))."' AND extract(YEAR from created_at) = '".date('Y', strtotime($request->date))."'");
-                            $qq->whereBetween('created_at', [$from, $to]);
+                            $qq->whereMonth('created_at', '=', date('m', strtotime($request->date)))->whereYear('created_at', '=', date('Y', strtotime($request->date)));
                         });
                     } else {
                         // $laporan = $laporan->whereMonth('created_at', date('m'));
                         $laporan = $laporan->whereHas('laporan', function ($qq) {
-                            // $qq->whereMonth('created_at', '=', date('m'))->whereYear('created_at', '=', date('Y'));
-                            // $qq->whereRaw("MONTH(created_at) = '".date('m')."' AND YEAR(created_at) = '".date('Y')."'");
-                            $qq->whereRaw("date_trunc('month', created_at)", "=", date('m'))->whereRaw("date_trunc('year', created_at)", "=", date('Y'));
+                            $qq->whereMonth('created_at', '=', date('m'))->whereYear('created_at', '=', date('Y'));
                         });
                     }
 
