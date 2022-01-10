@@ -657,7 +657,6 @@ class DashboardController extends Controller
                     $return['perangkat'] = $dataPerangkat->judul;
                     $return['perhari'] = $kalkulasi;
                     $return['hari'] = $namahari;
-                    $return['variable'] = $from.'+'.$to;
 
                     return $return;
                 });
