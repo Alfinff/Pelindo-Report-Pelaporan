@@ -120,6 +120,8 @@ $app->register(GrahamCampbell\Flysystem\FlysystemServiceProvider::class);
 // mail
 $app->register(Illuminate\Mail\MailServiceProvider::class);
 
+// excel
+$app->register(Maatwebsite\Excel\ExcelServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

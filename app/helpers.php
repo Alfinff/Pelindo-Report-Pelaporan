@@ -372,3 +372,12 @@ function color_value($str) {
 		return writeLog($e->getMessage());
 	}
 }
+
+function public_path($path = '')
+{
+	try {
+		return env('PUBLIC_PATH', base_path('public')) . ($path ? '/' . $path : $path);
+	} catch (Exception $e) {
+		return writeLog($e->getMessage());
+	}
+}

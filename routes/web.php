@@ -43,6 +43,8 @@ $router->group(['prefix' => 'superadmin', 'middleware' => ['jwt.auth', 'role.sup
         $router->get('/', 'LaporanController@getLaporan');
         $router->get('/details/{id}', 'LaporanController@detailLaporan');
         $router->get('/shift', 'LaporanController@getCatatanShift');
+        $router->post('/insert', 'LaporanIsianController@store');
+        $router->post('/insertCatat', 'LaporanIsianController@catatan');
 
         $router->group(['prefix' => 'cetak'], function() use ($router) {
             $router->get('/', 'LaporanApprovalController@index');
