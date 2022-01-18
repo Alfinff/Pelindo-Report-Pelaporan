@@ -182,6 +182,14 @@ class LaporanEOSController extends Controller
                     return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
+                $approvalAll = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'ALL');
+
+                if ($request->date) {
+                    $date = date('Y-m-d', strtotime($request->date));
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', $date);
+                } else {
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
+                }
                
                 if (empty($shift)) {
                     return response()->json([
@@ -197,6 +205,7 @@ class LaporanEOSController extends Controller
                         'code'    => 200,
                         'data'  => $shift,
                         'approval' => $approval,
+                        'approval_all' => $approvalAll,
                         'catatan_shift' => $catatan
                     ]);
                 }
@@ -349,6 +358,14 @@ class LaporanEOSController extends Controller
                     return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
+                $approvalAll = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'ALL');
+
+                if ($request->date) {
+                    $date = date('Y-m-d', strtotime($request->date));
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', $date);
+                } else {
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
+                }
                
                 if (empty($shift)) {
                     return response()->json([
@@ -364,6 +381,7 @@ class LaporanEOSController extends Controller
                         'code'    => 200,
                         'data'  => $shift,
                         'approval' => $approval,
+                        'approval_all' => $approvalAll,
                         'catatan_shift' => $catatan
                     ]);
                 }
@@ -516,6 +534,14 @@ class LaporanEOSController extends Controller
                     return [$shift->data = $cek, $shift->jam = $a[1][1], $shift->warna = $a[2][2], $shift->range = $a[3][3], $shift->daftareosyangshift = $eosNM];
                 });
 
+                $approvalAll = LaporanCetakApproval::with('user', 'approver')->where('jenis', 'ALL');
+
+                if ($request->date) {
+                    $date = date('Y-m-d', strtotime($request->date));
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', $date);
+                } else {
+                    $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
+                }
                
                 if (empty($shift)) {
                     return response()->json([
@@ -531,6 +557,7 @@ class LaporanEOSController extends Controller
                         'code'    => 200,
                         'data'  => $shift,
                         'approval' => $approval,
+                        'approval_all' => $approvalAll,
                         'catatan_shift' => $catatan
                     ]);
                 }
