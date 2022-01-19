@@ -190,6 +190,8 @@ class LaporanEOSController extends Controller
                 } else {
                     $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
                 }
+
+                $approvalAll = $approvalAll->first();
                
                 if (empty($shift)) {
                     return response()->json([
@@ -366,6 +368,8 @@ class LaporanEOSController extends Controller
                 } else {
                     $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
                 }
+
+                $approvalAll = $approvalAll->first();
                
                 if (empty($shift)) {
                     return response()->json([
@@ -542,6 +546,8 @@ class LaporanEOSController extends Controller
                 } else {
                     $approvalAll = $approvalAll->whereDate('tanggal', '=', date('Y-m-d'));
                 }
+
+                $approvalAll = $approvalAll->first();
                
                 if (empty($shift)) {
                     return response()->json([
