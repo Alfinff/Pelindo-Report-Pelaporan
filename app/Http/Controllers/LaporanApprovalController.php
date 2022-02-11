@@ -38,7 +38,7 @@ class LaporanApprovalController extends Controller
                 ]);
             }
             
-            $laporan = LaporanCetakApproval::with('user', 'approver')->where('soft_delete', 0)->where('jenis','!=','LOGBOOK');
+            $laporan = LaporanCetakApproval::with('user', 'approver')->where('soft_delete', 0)->where('jenis','!=','LOGBOOK')->where('jenis','!=','HAKAKSES');
             $search = $this->request->search;
 
             if ($this->request->search) {
