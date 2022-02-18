@@ -47,16 +47,16 @@ class LaporanApprovalController extends Controller
                 });
             }
 
-            if ($this->request->date) {
-                $laporan->whereDate('tanggal', date('Y-m-d', strtotime($this->request->date)));
-            }
+            // if ($this->request->date) {
+            //     $laporan->whereDate('tanggal', date('Y-m-d', strtotime($this->request->date)));
+            // }
 
-            if (($this->request->jenis) && ($this->request->jenis != 'ALL')) {
-                $laporan->where('jenis', strtoupper($this->request->jenis));
-            }
+            // if (($this->request->jenis) && ($this->request->jenis != 'ALL')) {
+            //     $laporan->where('jenis', strtoupper($this->request->jenis));
+            // }
 
             $laporan = $laporan->orderBy('created_at', 'desc')->paginate(10);
-            $laporan = $laporan->setPath(env('APP_URL', 'https://centro.pelindo.co.id/api/pelaporan/').'superadmin/laporan/cetak?search='.$this->request->search.'&jenis='.$this->request->jenis.'&date='.$this->request->date);
+            $laporan = $laporan->setPath(env('APP_URL', 'https://centro.pelindo.co.id/api/pelaporan/').'superadmin/laporan/cetak?search='.$this->request->search);
 
             if (empty($laporan)) {
                 return response()->json([
