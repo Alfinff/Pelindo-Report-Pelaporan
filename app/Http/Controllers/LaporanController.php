@@ -28,6 +28,20 @@ class LaporanController extends Controller
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->bulan = array(
+            '1' => 'Januari',
+            '2' => 'Februari',
+            '3' => 'Maret',
+            '4' => 'April',
+            '5' => 'Mei',
+            '6' => 'Juni',
+            '7' => 'Juli',
+            '8' => 'Agustus',
+            '9' => 'September',
+            '10' => 'Oktober',
+            '11' => 'November',
+            '12' => 'Desember',
+        );
     }
 
     public function getLaporanFct(Request $request)
@@ -1043,4 +1057,213 @@ class LaporanController extends Controller
         ]);
     }
 
+    public function getList()
+    {   
+        try
+        {
+            $decodeToken = parseJwt($this->request->header('Authorization'));
+            $uuid = $decodeToken->user->uuid;
+            $user = User::where('uuid', $uuid)->first();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengguna tidak ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+            
+            $tahun = [];
+            $tahun = Laporan::selectRaw("extract(year from created_at) as tahun")->distinct()->get();
+
+            if (!count($tahun)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data Tidak Ditemukan',
+                    'code'    => 404,
+                ]);
+            }
+
+            foreach($tahun as $item){
+                $getbulan = Laporan::selectRaw("extract(month from created_at) as bulan")->whereYear('created_at',$item->tahun)->distinct()->get();
+                $listbulan=[];
+                foreach($getbulan as $itemm){
+                    $object = new \stdClass();
+                    $object->bulan = $this->bulan[$itemm->bulan];
+                    $object->value = $itemm->bulan;
+                    array_push($listbulan,$object);
+                }
+                $item->listbulan = $listbulan;
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Tahun',
+                'code'    => 200,
+                'data'    => $tahun
+            ]);
+        } catch (\Throwable $th) {
+            return writeLog($th->getMessage().' at Line '.$th->getLine());
+        }
+    }
+
+    public function getPAC()
+    {
+        $decodeToken = parseJwt($this->request->header('Authorization'));
+        $uuid        = $decodeToken->user->uuid;
+        $user        = User::where('uuid', $uuid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak ditemukan',
+                'code'    => 404,
+            ]);
+        }
+        else {
+            try {
+                $month = $this->request->bulan;
+                $year = $this->request->tahun;
+                $days_count = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                $tanggal = [];
+                for($i = 1; $i <=  $days_count; $i++)
+                {
+                    $tanggal[] = $year . "-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-" . str_pad($i, 2, '0', STR_PAD_LEFT);
+                }
+                $kode_shift = ['P','S','M'];
+                $time = [
+                    ['08:00:00','09:00:00','10:00:00','11:00:00','12:00:00','13:00:00','14:00:00','15:00:00'],
+                    ['16:00:00','17:00:00','18:00:00','19:00:00','20:00:00','21:00:00','22:00:00','23:00:00'],
+                    ['00:00:00','01:00:00','02:00:00','03:00:00','04:00:00','05:00:00','06:00:00','07:00:00']
+                ];
+                $judul = ['PAC 1 TEMP (°C)','PAC 1 HUM (RH%)','PAC 2 TEMP (°C)','PAC 2 HUM (RH%)','PAC 3 TEMP (°C)','PAC 3 HUM (RH%)','PAC 4 TEMP (°C)','PAC 4 HUM (RH%)','PAC 5 TEMP (°C)','PAC 5 HUM (RH%)'];
+                //siapkan data
+                $data_all=[];
+                foreach($tanggal as $a){
+                    foreach($kode_shift as $ib=>$b){
+                        $isic=[];
+                        foreach($time[$ib] as $c){
+                            foreach($judul as $d){
+                                $isid[$d]='-';
+                            }
+                            $isic[$c]=$isid;
+                        }
+                        $isib[$b]=$isic;
+                    }
+                    $isia[$a]=$isib;
+                }
+                $data_all=$isia;
+                // dd($data_all);
+
+                $query = DB::table('ms_laporan_isi','isi')->
+                selectRaw("shift.tanggal,shift.kode_shift,jam.time,form.judul,pilih.pilihan,isi.isian")
+                ->join('ms_laporan as lap','isi.laporan_id','=','lap.uuid')
+                ->join('ms_shift_jadwal as shift','lap.jadwal_shift_id','=','shift.uuid')
+                ->join('ms_laporan_range_jam as jam','lap.range_jam_kode','=','jam.kode')
+                ->join('ms_form_isian as form','isi.form_isian_id','=','form.uuid')
+                ->join('ms_form_pilihan as pilih','isi.pilihan_id','=','pilih.uuid')
+                ->whereRaw('EXTRACT(MONTH FROM shift.tanggal)=?',$month)
+                ->whereRaw('EXTRACT(YEAR FROM shift.tanggal)=?',$year)
+                ->whereRaw("isi.form_isian_id in (SELECT uuid from ms_form_isian where judul LIKE 'PAC%' and judul NOT LIKE 'PAC 0%')")
+                ->get();
+                // dd($query->toSql(),$this->request->all());
+
+                foreach($query as $item){
+                    // dd($item,$data_all[$item->tanggal][$item->kode_shift][$item->time][$item->judul]);
+                    if($item->pilihan=='RUNNING'){
+                        $data_all[$item->tanggal][$item->kode_shift][$item->time][$item->judul]=$item->isian;
+                    }else{
+                        $data_all[$item->tanggal][$item->kode_shift][$item->time][$item->judul]='-';
+                    }
+                }
+                // dd($data_all);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'OK',
+                    'code'    => 200,
+                    'data'  => $data_all,
+                    'device' => $judul
+                ]);
+            } catch (\Throwable $th) {
+                return writeLog($th->getMessage());
+            }
+        }
+    }
+
+    public function getUPS()
+    {
+        $decodeToken = parseJwt($this->request->header('Authorization'));
+        $uuid        = $decodeToken->user->uuid;
+        $user        = User::where('uuid', $uuid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengguna tidak ditemukan',
+                'code'    => 404,
+            ]);
+        }
+        else {
+            try {
+                $month = $this->request->bulan;
+                $year = $this->request->tahun;
+                $days_count = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                $tanggal = [];
+                for($i = 1; $i <=  $days_count; $i++)
+                {
+                    $tanggal[] = $year . "-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-" . str_pad($i, 2, '0', STR_PAD_LEFT);
+                }
+                $kode_shift = ['P','S','M'];
+                $time = [
+                    ['08:00:00','09:00:00','10:00:00','11:00:00','12:00:00','13:00:00','14:00:00','15:00:00'],
+                    ['16:00:00','17:00:00','18:00:00','19:00:00','20:00:00','21:00:00','22:00:00','23:00:00'],
+                    ['00:00:00','01:00:00','02:00:00','03:00:00','04:00:00','05:00:00','06:00:00','07:00:00']
+                ];
+                $judul = ['UPS 1 VOLTAGE (VAC) (R)','UPS 1 VOLTAGE (VAC) (S)','UPS 1 VOLTAGE (VAC) (T)','UPS 1 AMPERE (A) (R)','UPS 1 AMPERE (A) (S)','UPS 1 AMPERE (A) (T)','UPS 1 LOAD LEVEL (%) (R)','UPS 1 LOAD LEVEL (%) (S)','UPS 1 LOAD LEVEL (%) (T)','UPS 2 VOLTAGE (VAC) (R)','UPS 2 VOLTAGE (VAC) (S)','UPS 2 VOLTAGE (VAC) (T)','UPS 2 AMPERE (A) (R)','UPS 2 AMPERE (A) (S)','UPS 2 AMPERE (A) (T)','UPS 2 LOAD LEVEL (%) (R)','UPS 2 LOAD LEVEL (%) (S)','UPS 2 LOAD LEVEL (%) (T)','UPS APC VOUT (VAC) (R)','UPS APC VOUT (VAC) (S)','UPS APC VOUT (VAC) (T)','UPS APC IOUT (A) (R)','UPS APC IOUT (A) (S)','UPS APC IOUT (A) (T)','UPS APC RUNTIME (MIN)'];
+                //siapkan data
+                $data_all=[];
+                foreach($tanggal as $a){
+                    foreach($kode_shift as $ib=>$b){
+                        $isic=[];
+                        foreach($time[$ib] as $c){
+                            foreach($judul as $d){
+                                $isid[$d]='-';
+                            }
+                            $isic[$c]=$isid;
+                        }
+                        $isib[$b]=$isic;
+                    }
+                    $isia[$a]=$isib;
+                }
+                $data_all=$isia;
+                // dd($data_all);
+
+                $query = DB::table('ms_laporan_isi','isi')->
+                selectRaw("shift.tanggal,shift.kode_shift,jam.time,form.judul,isi.isian")
+                ->join('ms_laporan as lap','isi.laporan_id','=','lap.uuid')
+                ->join('ms_shift_jadwal as shift','lap.jadwal_shift_id','=','shift.uuid')
+                ->join('ms_laporan_range_jam as jam','lap.range_jam_kode','=','jam.kode')
+                ->join('ms_form_isian as form','isi.form_isian_id','=','form.uuid')
+                ->whereRaw('EXTRACT(MONTH FROM shift.tanggal)=?',$month)
+                ->whereRaw('EXTRACT(YEAR FROM shift.tanggal)=?',$year)
+                ->whereRaw("isi.form_isian_id in (SELECT uuid from ms_form_isian where judul LIKE 'UPS%')")
+                ->get();
+                // dd($query->toSql(),$query->get());
+
+                foreach($query as $item){
+                    $data_all[$item->tanggal][$item->kode_shift][$item->time][$item->judul]=$item->isian;
+                }
+                // dd($data_all);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'OK',
+                    'code'    => 200,
+                    'data'  => $data_all,
+                    'device' => $judul
+                ]);
+            } catch (\Throwable $th) {
+                return writeLog($th->getMessage());
+            }
+        }
+    }
 }

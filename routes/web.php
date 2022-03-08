@@ -68,6 +68,16 @@ $router->group(['prefix' => 'laporan', 'middleware' => ['jwt.auth', 'role.super'
 
 $router->group(['prefix' => 'utils'], function() use ($router) {
     $router->get('/kategori', 'LaporanController@getFormJenis');
+
+    $router->group(['prefix' => 'pac'], function() use ($router) {
+        $router->get('/list', 'LaporanController@getList');
+        $router->get('/cetak', 'LaporanController@getPAC');
+    });
+    
+    $router->group(['prefix' => 'ups'], function() use ($router) {
+        $router->get('/list', 'LaporanController@getList');
+        $router->get('/cetak', 'LaporanController@getUPS');
+    });
 });
 
 $router->group(['prefix' => 'eos', 'middleware' => ['jwt.auth', 'role.eos']], function() use ($router) {
