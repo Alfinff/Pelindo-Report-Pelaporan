@@ -465,6 +465,15 @@ class LaporanMobileController extends Controller
             return writeLogValidation($validator->errors());
         }
 
+        $qr_code_mode = false;
+        if(!$this->request->has('qr_code') && $qr_code_mode){
+            return response()->json([
+                'success' => false,
+                'message' => 'Lakukan scan Kode QR terlebih dahulu',
+                'code'    => 404,
+            ]);
+        }
+
         DB::beginTransaction();
         try {
             $cekJadwal = '';
