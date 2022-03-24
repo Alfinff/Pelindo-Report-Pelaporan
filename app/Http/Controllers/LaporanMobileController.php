@@ -465,7 +465,7 @@ class LaporanMobileController extends Controller
             return writeLogValidation($validator->errors());
         }
 
-        $qr_code_mode = false;
+        $qr_code_mode = env('QR_CODE_ENABLED',false);
         if(!$this->request->has('qr_code') && $qr_code_mode){
             return response()->json([
                 'success' => false,
